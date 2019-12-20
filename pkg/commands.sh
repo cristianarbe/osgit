@@ -20,11 +20,14 @@ fn_deploy() {
   added="$(fn_plus "$1")"
   removed="$(fn_minus "$1")"
 
-  sudo apt update
-  sudo apt install $added
-  sudo apt purge $removed
-  sudo apt install $added
-  sudo apt autoremove
+  sudo apt-get update
+  # shellcheck disable=SC2086
+  sudo apt-get install $added
+  # shellcheck disable=SC2086
+  sudo apt-get purge $removed
+  # shellcheck disable=SC2086
+  sudo apt-get install $added
+  sudo apt-get autoremove
 
 }
 
@@ -37,8 +40,8 @@ fn_clone() {
 
 fn_add() {
   make_this_master
-  sudo apt update
-  if ! sudo apt install "$@"; then
+  sudo apt-get update
+  if ! sudo apt-get install "$@"; then
     exit 1
   fi
   update_packages_and_git "Add $*"
@@ -46,17 +49,17 @@ fn_add() {
 
 fn_rm() {
   make_this_master
-  if ! sudo apt purge "$@"; then
+  if ! sudo apt-get purge "$@"; then
     exit 1
   fi
-  sudo apt autoremove
+  sudo apt-get autoremove
   update_packages_and_git "Remove $*"
 }
 
 fn_upgrade() {
   make_this_master
-  sudo apt update
-  if ! sudo apt upgrade; then
+  sudo apt-get update
+  if ! sudo apt-get upgrade; then
     exit 1
   fi
   update_packages_and_git "Upgrade all packages"

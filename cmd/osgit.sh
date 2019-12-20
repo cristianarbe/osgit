@@ -33,6 +33,7 @@ main() {
     echo "Option is missing."
     ;;
   add | rm | pull | checkout | upgrade | rollback | sync)
+  # shellcheck disable=SC2086
     fn_$*
     ;;
   commit)
