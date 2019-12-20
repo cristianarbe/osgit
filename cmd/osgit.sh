@@ -21,6 +21,8 @@ startup() {
   fi
 
   echo '*' >.gitignore
+
+  get_installed >"$OSGIT_PROFILE"/packages.current
 }
 
 main() {
@@ -30,11 +32,20 @@ main() {
   "")
     echo "Option is missing."
     ;;
-  add | rm | pull | checkout | upgrade)
+  add | rm | pull | checkout | upgrade | rollback | sync)
     fn_$*
     ;;
-  commit | log)
+  commit)
     git "$@"
+    ;;
+  log)
+    n="$2"
+
+    if test -z "$n"; then
+      n=5
+    fi
+
+    git log --oneline | head -n "$n"
     ;;
   status)
     echo "Changes staged for commit:"
@@ -48,6 +59,8 @@ main() {
     echo "Option not recognized."
     ;;
   esac
+
+  rm "$OSGIT_PROFILE"/packages.current
 }
 
 main "$@"
