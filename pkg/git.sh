@@ -12,7 +12,7 @@ force_checkout() {
 }
 
 make_this_master() {
-  this="$(git branch | grep '*' | sed 's/* //g')"
+  this="$(git branch | grep -F '*' | sed 's/* //g')"
 
   case $this in
   master) ;;
