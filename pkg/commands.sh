@@ -1,34 +1,19 @@
 #!/bin/env sh
 
 fn_deploy() {
-  if test -n "$1"; then
-    reference="$1"
-  else
-    reference="$OSGIT_PROFILE"/packages
-  fi
-  dif="$(! diff -u "$OSGIT_PROFILE"/packages.current "$reference")"
+  reference="$1"
 
-  fn_dryrun "$dif"
-  printf "Do you want to continue? [y/N] "
-  read -r response
+  test -z "$reference" && reference="$OSGIT_PROFILE"/packages
 
-  case "$response" in
-  y | Y | yes) ;;
-  *) exit ;;
-  esac
+  changes="$(diff_with_current "$reference")"
 
-  added="$(fn_plus "$1")"
-  removed="$(fn_minus "$1")"
+  added="$(fn_plus "$changes")"
+  removed="$(fn_minus "$changes")"
 
-  sudo apt-get update
+  ! propose_to_user "$1" "$2" && clean_exit
+
   # shellcheck disable=SC2086
-  sudo apt-get install $added
-  # shellcheck disable=SC2086
-  sudo apt-get purge $removed
-  # shellcheck disable=SC2086
-  sudo apt-get install $added
-  sudo apt-get autoremove
-
+  apt_install $added && apt_rm $removed
 }
 
 fn_clone() {
@@ -40,29 +25,24 @@ fn_clone() {
 
 fn_add() {
   make_this_master
-  sudo apt-get update
-  if ! sudo apt-get install "$@"; then
-    exit 1
-  fi
+
+  # shellcheck disable=SC2068
+  apt_install $@
   update_packages_and_git "Add $*"
 }
 
 fn_rm() {
   make_this_master
-  if ! sudo apt-get purge "$@"; then
-    exit 1
-  fi
-  sudo apt-get autoremove
+
+  apt_rm "$@"
   update_packages_and_git "Remove $*"
 }
 
 fn_upgrade() {
   make_this_master
-  sudo apt-get update
-  if ! sudo apt-get upgrade; then
-    exit 1
-  fi
-  update_packages_and_git "Upgrade all packages"
+
+  apt_upgrade
+  update_packages_and_git "Upgrade packages"
 }
 
 fn_checkout() {
@@ -75,10 +55,22 @@ fn_checkout() {
 fn_rollback() {
   state="$1"
 
-  if test -z "$state"; then
-    state="HEAD~1"
-  fi
+  test -z "$state" && state="HEAD~1"
 
   commit_previous_state "$state"
   fn_deploy "$OSGIT_PROFILE"/packages
+}
+
+fn_log() {
+  n="$1"
+
+  test -z "$n" && n=5
+
+  git log --oneline | head -n "$n"
+}
+
+fn_status() {
+  echo "Changes staged for commit:"
+  git diff --staged -U0 | tail -n +4 | grep -v '@@' | grep -v '+++' |
+    sed 's/^+/\tadded: /g; s/^-/\tremoved: /g'
 }
