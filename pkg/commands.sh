@@ -1,6 +1,6 @@
 #!/bin/env sh
 
-fn_sync() {
+fn_deploy() {
   if test -n "$1"; then
     reference="$1"
   else
@@ -23,11 +23,11 @@ fn_sync() {
 
 }
 
-fn_pull() {
+fn_clone() {
   make_this_master
-  fn_sync "$1"
+  fn_deploy "$1"
   cp "$1" "$OSGIT_PROFILE"/packages
-  add_commit "Pull from $1"
+  add_commit "Clone from $1"
 }
 
 fn_add() {
@@ -60,7 +60,7 @@ fn_upgrade() {
 fn_checkout() {
   generate_checkout_file "$@"
 
-  fn_sync "$OSGIT_PROFILE"/packages.tocheckout
+  fn_deploy "$OSGIT_PROFILE"/packages.tocheckout
   force_checkout "$@"
 }
 
@@ -72,5 +72,5 @@ fn_rollback() {
   fi
 
   commit_previous_state "$state"
-  fn_sync "$OSGIT_PROFILE"/packages
+  fn_deploy "$OSGIT_PROFILE"/packages
 }
