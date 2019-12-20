@@ -17,9 +17,11 @@ fn_deploy() {
   *) exit ;;
   esac
 
+  sudo apt update
   sudo apt install $added
   sudo apt purge $removed
   sudo apt install $added
+  sudo apt autoremove
 
 }
 
