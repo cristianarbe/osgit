@@ -17,6 +17,9 @@ fn_deploy() {
   *) exit ;;
   esac
 
+  added="$(fn_plus "$1")"
+  removed="$(fn_minus "$1")"
+
   sudo apt update
   sudo apt install $added
   sudo apt purge $removed
