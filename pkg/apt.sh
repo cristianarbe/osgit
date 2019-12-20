@@ -10,8 +10,8 @@ update_packages_and_git() {
 }
 
 fn_dryrun() {
-    added="$(fn_plus "$1" | sed 's/\n/ /g; s/^+//g')"
-    removed="$(fn_minus "$1" | sed 's/\n/ /g; s/^-//g')"
+    added="$(fn_plus "$1")"
+    removed="$(fn_minus "$1")"
 
     if test -n "$added"; then
         echo "The following packages will be installed:"
