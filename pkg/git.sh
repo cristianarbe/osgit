@@ -26,9 +26,7 @@ make_this_master() {
   esac
 }
 
-remove_last_commit() {
-  git reset --hard HEAD^
-}
+remove_last_commit() { git reset --hard HEAD^; }
 
 generate_checkout_file() {
   force_checkout "$@"

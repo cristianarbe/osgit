@@ -25,11 +25,10 @@ main() {
 
   case "$1" in
   "") fatal "Option is missing." ;;
-  add | rm | pull | checkout | upgrade | rollback | sync | log | status)
+  add | rm | pull | clone | upgrade | rollback | deploy | log | list)
     # shellcheck disable=SC2086
     fn_$*
     ;;
-  list) cat "$OSGIT_PROFILE"/packages ;;
   *) fatal "Option not recognized." ;;
   esac
 

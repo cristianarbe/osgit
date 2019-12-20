@@ -62,15 +62,9 @@ fn_rollback() {
 }
 
 fn_log() {
-  n="$1"
-
-  test -z "$n" && n=5
+  test -z "$1" && n=5 || n="$1"
 
   git log --oneline | head -n "$n"
 }
 
-fn_status() {
-  echo "Changes staged for commit:"
-  git diff --staged -U0 | tail -n +4 | grep -v '@@' | grep -v '+++' |
-    sed 's/^+/\tadded: /g; s/^-/\tremoved: /g'
-}
+fn_list() { cat "$OSGIT_PROFILE"/packages; }
