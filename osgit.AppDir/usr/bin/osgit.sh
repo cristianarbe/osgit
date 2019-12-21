@@ -4,7 +4,7 @@ set -e
 
 OSGIT_PROFILE="$HOME/.osgit"
 
-for import in "$SHPATH"/src/github.com/cristianarbe/osgit/pkg/*.sh; do
+for import in "$APPRUN_DIR"/usr/lib/*sh; do
   # shellcheck disable=SC1090
   . "$import"
 done
