@@ -8,7 +8,7 @@ fn_deploy() {
   added="$(fn_plus "$changes")"
   removed="$(fn_minus "$changes")"
 
-  ! propose_to_user "$1" "$2" && clean_exit
+  ! propose_to_user "$added" "$removed" && clean_exit
 
   # shellcheck disable=SC2086
   apt_install $added && apt_rm $removed
@@ -60,7 +60,7 @@ fn_rollback() {
 }
 
 fn_log() {
-  test -z "$1" && n=5 || n="$1"
+  test -z "$1" && n=10 || n="$1"
 
   git log --oneline | head -n "$n"
 }
@@ -71,4 +71,9 @@ fn_list() {
   fi
 
   cat "$OSGIT_PROFILE"/packages
+}
+
+fn_update() {
+  sudo apt-get update
+  get_installed >"$OSGIT_PROFILE"/packages
 }

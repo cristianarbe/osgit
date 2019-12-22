@@ -19,9 +19,9 @@ show_packages() {
 }
 
 propose_to_user() {
-  show_packages "$1" "installed"
+  show_packages "installed" "$1"
   echo ""
-  show_packages "$2" "REMOVED"
+  show_packages "REMOVED" "$2"
 
   printf "Do you want to continue? [y/N] " && read -r response
 
