@@ -10,18 +10,10 @@ if test -z "$APP_ROOT_DIR"; then
   APP_ROOT_DIR="$(pwd)"/..
 fi
 
-# shellcheck source=../lib/osgit/apt.sh
-. "$APP_ROOT_DIR"/lib/osgit/apt.sh
-# shellcheck source=../lib/osgit/cleanup.sh
-. "$APP_ROOT_DIR"/lib/osgit/cleanup.sh
-# shellcheck source=../lib/osgit/commands.sh
-. "$APP_ROOT_DIR"/lib/osgit/commands.sh
-# shellcheck source=../lib/osgit/diffs.sh
-. "$APP_ROOT_DIR"/lib/osgit/diffs.sh
-# shellcheck source=../lib/osgit/errors.sh
-. "$APP_ROOT_DIR"/lib/osgit/errors.sh
-# shellcheck source=../lib/osgit/git.sh
-. "$APP_ROOT_DIR"/lib/osgit/git.sh
+for lib in apt cleanup commands diffs errors git print; do
+  # shellcheck disable=SC1090
+  . "$APP_ROOT_DIR"/lib/osgit/"$lib".sh
+done
 
 startup() {
   test ! -d "$OSGIT_PROFILE" && mkdir "$OSGIT_PROFILE"
@@ -39,7 +31,8 @@ main() {
 
   case "$1" in
   "") fatal "Option is missing." ;;
-  add | rm | pull | clone | upgrade | rollback | deploy | log | list | update)
+  add | rm | pull | clone | upgrade | rollback | \
+    deploy | log | list | update | show | pin | unpin | revert)
     # shellcheck disable=SC2086
     fn_$*
     ;;
@@ -50,6 +43,16 @@ main() {
   esac
 
   clean_exit
+}
+
+fn_unpin() {
+  pins="$(grep -n "$1" /etc/apt/preferences | cut -d ':' -f 1)"
+
+  for pin in $pins; do
+    end=$((pin + 2))
+
+    sudo sed -i.bak -e "${pin},${end}d" /etc/apt/preferences
+  done
 }
 
 main "$@"

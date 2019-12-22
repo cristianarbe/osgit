@@ -1,3 +1,5 @@
+#!/bin/sh
+
 fn_deploy() {
   reference="$1"
 
@@ -74,6 +76,33 @@ fn_list() {
 }
 
 fn_update() {
-  sudo apt-get update
+  apt_update
+
   get_installed >"$OSGIT_PROFILE"/packages
+}
+
+fn_show() {
+  full_show="$(git show "$1")"
+
+  echo "Added:"
+  print_list "$(fn_plus "$full_show")"
+  echo
+  echo "Removed:"
+  print_list "$(fn_minus "$full_show")"
+}
+
+fn_pin() {
+  version="$(get_package_version "$1")"
+  echo "package: $1" | sudo tee -a /etc/apt/preferences
+  echo "Pin: version $version" | sudo tee -a /etc/apt/preferences
+  echo "Pin-Priority: 1001" | sudo tee -a /etc/apt/preferences
+}
+
+fn_unpin() {
+  grep -n "$1" /etc/apt/preferences | cut -d ':' -f 1
+}
+
+fn_revert() {
+  git revert "$1"
+  fn_deploy
 }

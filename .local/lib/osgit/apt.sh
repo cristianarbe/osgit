@@ -1,3 +1,13 @@
+#!/bin/sh
+
+apt_update() {
+  printf "Updating list of packages... "
+  if [ -z "$(find /var/cache/apt/pkgcache.bin -mmin -5)" ]; then
+    sudo apt-get -q update >/dev/null
+  fi
+  printf "Done\\n"
+}
+
 get_installed() { dpkg-query -Wf '${Package}=${Version}\n'; }
 
 update_packages_and_git() {
@@ -12,10 +22,7 @@ show_packages() {
   fi
 
   echo "The following packages will be $1:"
-  for package in $2; do
-    printf "\\t%s\\n" "$package"
-  done
-
+  print_list "$2"
 }
 
 propose_to_user() {
@@ -33,23 +40,44 @@ propose_to_user() {
 
 # shellcheck disable=SC2068
 apt_rm() {
-  sudo apt-get purge $@ ||
-    fatal "apt purge failed"
+  sudo apt-get -q purge $@ ||
+    fatal "apt-get purge failed"
 
-  sudo apt-get autoremove
+  sudo apt-get -q autoremove
 }
 
 # shellcheck disable=SC2068
 apt_install() {
-  sudo apt-get update
+  apt_update
 
-  sudo apt-get install $@ ||
-    fatal "apt install failed"
+  test -n "$1" && available_versions "$1"
+
+  sudo apt-get -q install $@ ||
+    fatal "apt-get install failed"
 }
 
 apt_upgrade() {
-  sudo apt-get update
+  apt_update
 
-  sudo apt-get upgrade -y ||
-    fatal "apt upgrade failed"
+  sudo apt-get -q upgrade -y ||
+    fatal "apt-get upgrade failed"
+}
+
+available_versions() {
+  case "$1" in
+  *=*) ;;
+  *)
+    versions="$(apt-cache madison "$1" | tr -d ' ' | cut -d '|' -f 1,2 |
+      sed 's/|/=/g' | sort | uniq)"
+
+    echo "Please specify a version, available versions are:"
+    print_list "$versions"
+
+    clean_exit
+    ;;
+  esac
+}
+
+get_package_version() {
+  apt-cache policy "$1" | grep '\*\*' | cut -d ' ' -f 3
 }
