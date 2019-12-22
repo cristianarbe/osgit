@@ -2,12 +2,13 @@
 
 set -e
 
+OSGIT_PROFILE="$HOME/.osgit"
+VERSION="0.1"
+
 if test -z "$APP_ROOT_DIR"; then
   cd "$(dirname "$0")"
   APP_ROOT_DIR="$(pwd)"/..
 fi
-
-OSGIT_PROFILE="$HOME/.osgit"
 
 # shellcheck source=../lib/osgit/apt.sh
 . "$APP_ROOT_DIR"/lib/osgit/apt.sh
@@ -38,9 +39,12 @@ main() {
 
   case "$1" in
   "") fatal "Option is missing." ;;
-  add | rm | pull | clone | upgrade | rollback | deploy | log | list)
+  add | rm | pull | clone | upgrade | rollback | deploy | log | list | update)
     # shellcheck disable=SC2086
     fn_$*
+    ;;
+  version)
+    echo "osgit $VERSION"
     ;;
   *) fatal "Option not recognized." ;;
   esac
