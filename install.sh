@@ -1,4 +1,6 @@
-#!/bin/sh -e
+#!/bin/sh
+
+set -e
 
 SCRIPT_DIR="$(dirname "$0")"
 cd "$SCRIPT_DIR" || exit
@@ -19,3 +21,14 @@ case "$PATH" in
 esac
 
 cp "$SCRIPT_DIR"/.local "$HOME" -r
+
+original="$(sha256sum "$SCRIPT_DIR"/.local/bin/osgit | head -c 64)"
+
+executable_path="$HOME/.local/bin/osgit"
+installed="$(sha256sum "$executable_path" | head -c 64)"
+
+if test "$original" = "$installed"; then
+  echo 'Installed correctly.'
+else
+  echo 'Checksums of your installed file and this version do not match.'
+fi
