@@ -2,27 +2,40 @@
 
 osgit is a wrapper for apt-get that adds the capability of managing the list of installed packages as a git repository.
 
-# Installation
+## Installation
 
-1. Download the latest `.AppImage` from [the releases page](https://github.com/cristianarbe/osgit/releases),
-2. make it executable
-
-```
-$ chmod a+x osgit*.AppImage
-```
-
-3. and run!
+1. Download the latest version,
 
 ```
-./osgit*.AppImage
+$ git clone https://github.com/cristianarbe/osgit.git
 ```
 
-Installation: Installation is the next section in an effective README. Tell other users how to install your project locally. Optionally, include a gif to make the process even more clear for other people.
+2. install it
 
-Usage: The next section is usage, in which you instruct other people on how to use your project after they’ve installed it. This would also be a good place to include screenshots of your project in action.
+```
+$ cd osgit
+$ chmod +x install
+$ ./install
+```
 
-Contributing: Larger projects often have sections on contributing to their project, in which contribution instructions are outlined. Sometimes, this is a separate file. If you have specific contribution preferences, explain them so that other developers know how to best contribute to your work. To learn more about how to help others contribute, check out the guide for setting guidelines for repository contributors.
+3. and done!
 
-Credits: Include a section for credits in order to highlight and link to the authors of your project.
+**TODO:** add gif
 
-License: Finally, include a section for the license of your project. For more information on choosing a license, check out GitHub’s licensing guide!
+## Usage
+
+**TODO:** complete this
+
+## Contributing
+
+Suggestions/improvements [welcome](https://github.com/cristianarbe/osgit/issues)!
+
+# Credits
+
+- **Cristian Ariza** - _Initial work_ - [cristianarbe](https://github.com/cristianarbe)
+
+See also the list of [contributors](https://github.com/cristianarbe/gnad/contributors) who participated in this project.
+
+# License
+
+This project is licensed under the GPL-3.0 License - see the [LICENSE.md](LICENSE.md) file for details
