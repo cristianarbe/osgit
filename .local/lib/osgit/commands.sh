@@ -65,4 +65,10 @@ fn_log() {
   git log --oneline | head -n "$n"
 }
 
-fn_list() { cat "$OSGIT_PROFILE"/packages; }
+fn_list() {
+  if test ! -f "$OSGIT_PROFILE"/packages; then
+    update_packages_and_git "Regenerate cache"
+  fi
+
+  cat "$OSGIT_PROFILE"/packages
+}
