@@ -1,4 +1,4 @@
-get_installed() { dpkg-query -Wf '${Package}\n'; }
+get_installed() { dpkg-query -Wf '${Package}=${Version}\n'; }
 
 update_packages_and_git() {
   get_installed >"$OSGIT_PROFILE"/packages
