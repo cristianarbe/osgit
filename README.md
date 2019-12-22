@@ -14,8 +14,7 @@ $ git clone https://github.com/cristianarbe/osgit.git
 
 ```
 $ cd osgit
-$ chmod +x install
-$ ./install
+$ sh install
 ```
 
 3. and done!
