@@ -19,7 +19,7 @@ $ sh install
 
 3. and done!
 
-![img](gifs/installation.gif)
+![img](gifs/installing.gif)
 
 **TODO:** add gif
 
