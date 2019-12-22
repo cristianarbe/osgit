@@ -1,6 +1,4 @@
-#!/bin/env sh
-
-fatal(){
+fatal() {
     cleanup
     echo "$@"
     exit 1

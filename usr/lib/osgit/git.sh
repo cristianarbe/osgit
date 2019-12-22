@@ -1,5 +1,3 @@
-#!/bin/sh
-
 add_commit() {
   git add "$OSGIT_PROFILE"/packages -f
   git commit -m "$1"

@@ -1,7 +1,0 @@
-#!/bin/env sh
-
-APP_ROOT_DIR=$(dirname "$0")
-APP_ROOT_DIR=$(eval "cd \"$APP_ROOT_DIR\" && pwd")
-
-# shellcheck disable=SC1090
-. "$APP_ROOT_DIR"/usr/bin/osgit

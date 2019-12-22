@@ -1,5 +1,3 @@
-#!/bin/env sh
-
 fn_deploy() {
   reference="$1"
 

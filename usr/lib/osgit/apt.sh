@@ -1,5 +1,3 @@
-#!/bin/env sh
-
 get_installed() { dpkg-query -Wf '${Package}\n'; }
 
 update_packages_and_git() {

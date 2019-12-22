@@ -1,4 +1,3 @@
-#!/bin/env sh
 cleanup() {
     rm "$OSGIT_PROFILE"/packages.current
 }
