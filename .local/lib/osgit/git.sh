@@ -34,5 +34,5 @@ generate_checkout_file() {
 
 commit_previous_state() {
   git checkout -f "$1" -- .
-  add_commit "Reverted to $1"
+  add_commit "Rollback to $1"
 }
