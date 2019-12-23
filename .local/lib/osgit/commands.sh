@@ -106,3 +106,13 @@ fn_revert() {
   git revert "$1"
   fn_deploy
 }
+
+fn_unpin() {
+  pins="$(grep -n "$1" /etc/apt/preferences | cut -d ':' -f 1)"
+
+  for pin in $pins; do
+    end=$((pin + 2))
+
+    sudo sed -i.bak -e "${pin},${end}d" /etc/apt/preferences
+  done
+}
