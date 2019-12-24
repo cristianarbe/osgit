@@ -2,9 +2,9 @@
 
 fn_deploy() {
   check_root
-  reference="$1"
 
-  : "${reference:="$OSGIT_PROFILE"/packages}"
+  reference="$OSGIT_PROFILE"/packages
+  test "$#" -ne 0 && reference="$1"
 
   changes="$(diff_with_current "$reference")"
 
@@ -15,17 +15,20 @@ fn_deploy() {
 
   # shellcheck disable=SC2086
   apt_install $added && apt_rm $removed
+  cp "$reference" "$OSGIT_PROFILE"/packages
 }
 
 fn_clone() {
+  test "$#" -eq 0 && clean_exit "Nothing to do."
   check_root
   make_this_master
   fn_deploy "$1"
-  cp "$1" "$OSGIT_PROFILE"/packages
   add_commit "Clone from $1"
 }
 
 fn_add() {
+  test "$#" -eq 0 && clean_exit "Nothing to do."
+
   check_root
   make_this_master
 
@@ -35,6 +38,7 @@ fn_add() {
 }
 
 fn_rm() {
+  test "$#" -eq 0 && clean_exit "Nothing to do."
   check_root
   make_this_master
 
@@ -51,6 +55,7 @@ fn_upgrade() {
 }
 
 fn_checkout() {
+  test "$#" -eq 0 && clean_exit "Nothing to do."
   check_root
   generate_checkout_file "$@"
 
@@ -60,12 +65,13 @@ fn_checkout() {
 
 fn_rollback() {
   check_root
+  state=
 
-  state="$1"
-
-  if test -z "$state"; then
-    display_menu "$(fn_log "")"
+  if test "$#" -ne 0; then
+    state="$1"
+  else
     state="$(get_menu_result | cut -d ' ' -f 1)"
+    display_menu "$(fn_log "")"
   fi
 
   commit_previous_state "$state"
@@ -73,8 +79,9 @@ fn_rollback() {
 }
 
 fn_log() {
-  n="$1"
-  : "${n:=10}"
+  n=10
+
+  test "$#" -ne 0 && n="$1"
 
   git log --oneline | head -n "$n"
 }
@@ -95,24 +102,28 @@ fn_update() {
 }
 
 fn_show() {
+  test "$#" -eq 0 && clean_exit "Nothing to do."
   full_show="$(git show "$1")"
 
   echo "Added:"
   print_list "$(fn_plus "$full_show")"
-  echo
   echo "Removed:"
   print_list "$(fn_minus "$full_show")"
 }
 
 fn_pin() {
+  test "$#" -eq 0 && clean_exit "Nothing to do."
   check_root
   version="$(get_package_version "$1")"
-  echo "package: $1" | tee -a /etc/apt/preferences
-  echo "Pin: version $version" | tee -a /etc/apt/preferences
-  echo "Pin-Priority: 1001" | tee -a /etc/apt/preferences
+  {
+    echo "package: $1"
+    echo "Pin: version $version"
+    echo "Pin-Priority: 1001"
+  } >>/etc/apt/preferences
 }
 
 fn_revert() {
+  test "$#" -eq 0 && clean_exit "Nothing to do."
   check_root
   git revert --no-commit "$1"
   git commit -m "Revert $1"
@@ -120,12 +131,12 @@ fn_revert() {
 }
 
 fn_unpin() {
+  test "$#" -eq 0 && clean_exit "Nothing to do."
   check_root
   pins="$(grep -n "$1" /etc/apt/preferences | cut -d ':' -f 1)"
 
   for pin in $pins; do
     end=$((pin + 2))
-
     sed -i.bak -e "${pin},${end}d" /etc/apt/preferences
   done
 }
