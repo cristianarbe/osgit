@@ -70,8 +70,12 @@ available_versions() {
     versions="$(apt-cache madison "$1" | tr -d ' ' | cut -d '|' -f 1,2 |
       sed 's/|/=/g' | sort | uniq)"
 
-    echo "Please specify a version, available versions are:"
-    print_list "$versions"
+    if test -n "$versions"; then
+      echo "Please specify a version, available versions are:"
+      print_list "$versions"
+    else
+      echo "No available versions found for '$1'"
+    fi
 
     clean_exit
     ;;
