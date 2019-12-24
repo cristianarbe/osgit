@@ -4,7 +4,7 @@ osgit is a wrapper for apt-get that adds the capability of managing the list of 
 
 ## Index
 
-* [Getting started](#)
+* [Getting started](#Getting-started)
 
 
 ## Getting started
@@ -25,8 +25,6 @@ $ sh install
 ```
 
 3. and done!
-
-![img](gifs/installing.gif)
 
 ### Usage
 
