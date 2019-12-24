@@ -1,3 +1,5 @@
+#!/bin/sh
+
 cleanup() {
   for file in "$TMP"/packages.current \
     "$TMP"/packages.tocheckout; do
