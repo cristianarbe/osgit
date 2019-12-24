@@ -4,7 +4,7 @@ fn_deploy() {
   check_root
   reference="$1"
 
-  test -z "$reference" && reference="$OSGIT_PROFILE"/packages
+  : "${reference:="$OSGIT_PROFILE"/packages}"
 
   changes="$(diff_with_current "$reference")"
 
@@ -73,7 +73,8 @@ fn_rollback() {
 }
 
 fn_log() {
-  test -z "$1" && n=10 || n="$1"
+  n="$1"
+  : "${n:=10}"
 
   git log --oneline | head -n "$n"
 }
