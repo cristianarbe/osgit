@@ -8,4 +8,4 @@ fn_minus() {
     echo "$1" | grep -E "^\\-" | grep -v '\-\-' | sed 's/\n/ /g; s/^-//g'
 }
 
-diff_with_current(){ ! diff -u "$OSGIT_PROFILE"/packages.current "$1"; }
+diff_with_current(){ ! diff -u "$TMP"/packages.current "$1"; }

@@ -38,7 +38,7 @@ main() {
   if test -n "$1"; then
     option="$1"
     shift
-    get_installed >"$OSGIT_PROFILE"/packages.current
+    get_installed >"$TMP"/packages.current
   fi
 
   case "$option" in
