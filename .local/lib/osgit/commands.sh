@@ -1,6 +1,7 @@
 #!/bin/sh
 
 fn_deploy() {
+  check_root
   reference="$1"
 
   test -z "$reference" && reference="$OSGIT_PROFILE"/packages
@@ -17,6 +18,7 @@ fn_deploy() {
 }
 
 fn_clone() {
+  check_root
   make_this_master
   fn_deploy "$1"
   cp "$1" "$OSGIT_PROFILE"/packages
@@ -24,6 +26,7 @@ fn_clone() {
 }
 
 fn_add() {
+  check_root
   make_this_master
 
   # shellcheck disable=SC2068
@@ -32,6 +35,7 @@ fn_add() {
 }
 
 fn_rm() {
+  check_root
   make_this_master
 
   apt_rm "$@"
@@ -39,6 +43,7 @@ fn_rm() {
 }
 
 fn_upgrade() {
+  check_root
   make_this_master
 
   apt_upgrade
@@ -46,6 +51,7 @@ fn_upgrade() {
 }
 
 fn_checkout() {
+  check_root
   generate_checkout_file "$@"
 
   fn_deploy "$OSGIT_PROFILE"/packages.tocheckout
@@ -53,6 +59,7 @@ fn_checkout() {
 }
 
 fn_rollback() {
+  check_root
   state="$1"
 
   test -z "$state" && state="HEAD~1"
@@ -76,6 +83,7 @@ fn_list() {
 }
 
 fn_update() {
+  check_root
   apt_update
 
   get_installed >"$OSGIT_PROFILE"/packages
@@ -92,27 +100,26 @@ fn_show() {
 }
 
 fn_pin() {
+  check_root
   version="$(get_package_version "$1")"
-  echo "package: $1" | sudo tee -a /etc/apt/preferences
-  echo "Pin: version $version" | sudo tee -a /etc/apt/preferences
-  echo "Pin-Priority: 1001" | sudo tee -a /etc/apt/preferences
-}
-
-fn_unpin() {
-  grep -n "$1" /etc/apt/preferences | cut -d ':' -f 1
+  echo "package: $1" | tee -a /etc/apt/preferences
+  echo "Pin: version $version" | tee -a /etc/apt/preferences
+  echo "Pin-Priority: 1001" | tee -a /etc/apt/preferences
 }
 
 fn_revert() {
+  check_root
   git revert "$1"
   fn_deploy
 }
 
 fn_unpin() {
+  check_root
   pins="$(grep -n "$1" /etc/apt/preferences | cut -d ':' -f 1)"
 
   for pin in $pins; do
     end=$((pin + 2))
 
-    sudo sed -i.bak -e "${pin},${end}d" /etc/apt/preferences
+    sed -i.bak -e "${pin},${end}d" /etc/apt/preferences
   done
 }
