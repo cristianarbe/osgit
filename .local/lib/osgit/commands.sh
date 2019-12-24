@@ -116,3 +116,26 @@ fn_unpin() {
     sudo sed -i.bak -e "${pin},${end}d" /etc/apt/preferences
   done
 }
+
+fn_help() {
+  echo "osgit $VERSION"
+  echo "Usage: osgit [options] command"
+  echo ""
+  echo "osgit is a commandline apt-wrapper and provides commands for"
+  echo "searching and managing as well as version control installed packages."
+  echo ""
+  echo "Commands:"
+  echo "  add - install packages"
+  echo "  deploy - sync installed packages with a file"
+  echo "  help - shows this"
+  echo "  list - lists installed packages"
+  echo "  pin - pins the currently installed version of a package"
+  echo "  pin - unpins a package"
+  echo "  revert - reverts a specific commit"
+  echo "  rm - uninstall packages"
+  echo "  rollback - change the installed packages to a specific commit"
+  echo "  show - prints information about a specific commit"
+  echo "  shows osgit commit log"
+  echo "  update - updates cache"
+  echo "  upgrade - upgrade the system by installing/upgrading packages"
+}
