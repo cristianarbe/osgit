@@ -22,19 +22,17 @@ startup() {
     fatal "Could not get into $OSGIT_PROFILE"
 
   test ! -d .git && git init
-
-  get_installed >"$OSGIT_PROFILE"/packages.current
+  return 0
 }
 
 main() {
   startup
 
-  if test -z "$1"; then
-    fatal "Option is missing."
+  if test -n "$1"; then
+    option="$1"
+    shift
+    get_installed >"$OSGIT_PROFILE"/packages.current
   fi
-
-  option="$1"
-  shift
 
   case "$option" in
   a*) fn_add $* ;;
@@ -44,8 +42,8 @@ main() {
   lo*) fn_log $* ;;
   pi*) fn_pin $* ;;
   pu*) fn_rm $* ;;
-  rev*) fn_revert $* ;;
   rem*) fn_rm $* ;;
+  rev*) fn_revert $* ;;
   rm) fn_rm $* ;;
   ro*) fn_rollback $* ;;
   s*) fn_show $* ;;
@@ -54,7 +52,7 @@ main() {
   upd*) fn_update $* ;;
   upg*) fn_upgrade $* ;;
   v*) echo "osgit $VERSION" ;;
-  *) fatal "Option not recognized." ;;
+  *) fn_help ;;
   esac
 
   clean_exit
