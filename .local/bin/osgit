@@ -29,16 +29,31 @@ startup() {
 main() {
   startup
 
-  case "$1" in
-  "") fatal "Option is missing." ;;
-  add | rm | pull | clone | upgrade | rollback | \
-    deploy | log | list | update | show | pin | unpin | revert)
-    # shellcheck disable=SC2086
-    fn_$*
-    ;;
-  version)
-    echo "osgit $VERSION"
-    ;;
+  if test -z "$1"; then
+    fatal "Option is missing."
+  fi
+
+  option="$1"
+  shift
+
+  case "$option" in
+  a*) fn_add $* ;;
+  d*) fn_deploy $* ;;
+  i*) fn_add $* ;;
+  li*) fn_list $* ;;
+  lo*) fn_log $* ;;
+  pi*) fn_pin $* ;;
+  pu*) fn_rm $* ;;
+  rev*) fn_revert $* ;;
+  rem*) fn_rm $* ;;
+  rm) fn_rm $* ;;
+  ro*) fn_rollback $* ;;
+  s*) fn_show $* ;;
+  uni*) fn_rm $* ;;
+  unp*) fn_unpin $* ;;
+  upd*) fn_update $* ;;
+  upg*) fn_upgrade $* ;;
+  v*) echo "osgit $VERSION" ;;
   *) fatal "Option not recognized." ;;
   esac
 
