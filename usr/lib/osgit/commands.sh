@@ -54,7 +54,7 @@ fn_checkout() {
   check_root
   generate_checkout_file "$@"
 
-  fn_deploy "$OSGIT_PROFILE"/packages.tocheckout
+  fn_deploy "$TMP"/packages.tocheckout
   force_checkout "$@"
 }
 

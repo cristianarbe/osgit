@@ -2,7 +2,8 @@
 
 set -e
 
-OSGIT_PROFILE="$HOME/.osgit"
+OSGIT_PROFILE="/var/cache/osgit"
+TMP="/tmp/osgit"
 VERSION="0.1"
 
 if test -z "$APP_ROOT_DIR"; then
@@ -21,9 +22,14 @@ startup() {
   cd "$OSGIT_PROFILE" ||
     fatal "Could not get into $OSGIT_PROFILE"
 
-  test ! -d .git && git init
+  if test ! -d .git; then
+    git init
+    get_installed >"$OSGIT_PROFILE"/packages
+    add_commit "First commit"
+  fi
 
-  get_installed >"$OSGIT_PROFILE"/packages.current
+  test ! -d "$TMP" && mkdir "$TMP"
+  get_installed >"$TMP"/packages.current
 }
 
 main() {

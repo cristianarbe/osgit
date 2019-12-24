@@ -1,3 +1,5 @@
+#!/bin/sh
+
 add_commit() {
   git add "$OSGIT_PROFILE"/packages -f
   git commit -m "$1"
@@ -28,7 +30,7 @@ remove_last_commit() { git reset --hard HEAD^; }
 
 generate_checkout_file() {
   force_checkout "$@"
-  cp "$OSGIT_PROFILE"/packages "$OSGIT_PROFILE"/packages.tocheckout
+  cp "$OSGIT_PROFILE"/packages "$TMP"/packages.tocheckout
   force_checkout master
 }
 
