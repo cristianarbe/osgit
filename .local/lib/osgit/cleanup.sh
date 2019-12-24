@@ -5,6 +5,7 @@ cleanup() {
     rm "$OSGIT_PROFILE"/packages.tmp
   test -f "$OSGIT_PROFILE"/packages.tocheckout &&
     rm "$OSGIT_PROFILE"/packages.tocheckout
+  return 0
 }
 
 clean_exit() {
