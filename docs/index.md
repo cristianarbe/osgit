@@ -2,6 +2,10 @@
 
 osgit is a wrapper for apt-get that adds the capability of managing the list of installed packages as a git repository.
 
+## Index
+
+* [Getting started](/)
+
 ## Installation
 
 1. Download the latest version,
