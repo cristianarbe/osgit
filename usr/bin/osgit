@@ -1,13 +1,11 @@
 #!/bin/sh
 
-set -e
-
 OSGIT_PROFILE="/var/cache/osgit"
 TMP="/tmp/osgit"
 VERSION="0.1"
 
 if test -z "$APP_ROOT_DIR"; then
-  cd "$(dirname "$0")"
+  cd "$(dirname "$0")" || exit
   APP_ROOT_DIR="$(pwd)"/..
 fi
 
@@ -46,6 +44,8 @@ main() {
   case "$option" in
   a*) fn_add $* ;;
   d*) fn_deploy $* ;;
+  he*) fn_help ;;
+  hi*) fn_log $* ;;
   i*) fn_add $* ;;
   li*) fn_list $* ;;
   lo*) fn_log $* ;;
