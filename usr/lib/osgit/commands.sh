@@ -64,7 +64,7 @@ fn_rollback() {
   state="$1"
 
   if test -z "$state"; then
-    display_menu "$(fn_log)"
+    display_menu "$(fn_log "")"
     state="$(get_menu_result | cut -d ' ' -f 1)"
   fi
 
@@ -113,7 +113,8 @@ fn_pin() {
 
 fn_revert() {
   check_root
-  git revert "$1"
+  git revert --no-commit "$1"
+  git commit -m "Revert $1"
   fn_deploy
 }
 
