@@ -1,6 +1,6 @@
 #!/bin/sh
 fatal() {
     cleanup
-    echo "$@"
+    echo "$@" >&2
     exit 1
 }
