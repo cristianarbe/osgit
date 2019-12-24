@@ -10,7 +10,7 @@ if test -z "$APP_ROOT_DIR"; then
   APP_ROOT_DIR="$(pwd)"/..
 fi
 
-for lib in apt cleanup commands diffs errors git print; do
+for lib in apt cleanup commands diffs errors git print root; do
   # shellcheck disable=SC1090
   . "$APP_ROOT_DIR"/lib/osgit/"$lib".sh
 done
