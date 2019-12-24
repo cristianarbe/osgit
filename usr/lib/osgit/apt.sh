@@ -2,9 +2,9 @@
 
 apt_update() {
   printf "Updating list of packages... "
-  if [ -z "$(find /var/cache/apt/pkgcache.bin -mmin -5)" ]; then
-    apt-get -q update >/dev/null
-  fi
+
+  apt-get -q update >/dev/null
+
   printf "Done\\n"
 }
 
@@ -48,7 +48,9 @@ apt_rm() {
 
 # shellcheck disable=SC2068
 apt_install() {
-  apt_update
+  if [ -z "$(find /var/cache/apt/pkgcache.bin -mmin -5)" ]; then
+    apt_update
+  fi
 
   test -n "$1" && available_versions "$1"
 
@@ -57,7 +59,9 @@ apt_install() {
 }
 
 apt_upgrade() {
-  apt_update
+  if [ -z "$(find /var/cache/apt/pkgcache.bin -mmin -5)" ]; then
+    apt_update
+  fi
 
   apt-get -q upgrade -y ||
     fatal "apt-get upgrade failed"
