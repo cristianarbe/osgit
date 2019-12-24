@@ -1,0 +1,27 @@
+#!/bin/sh
+
+set -e
+
+if test "$(id -u)" -ne 0; then
+  echo "This option must be run as root"
+  exit 1
+fi
+
+SCRIPT_DIR="$(dirname "$0")"
+cd "$SCRIPT_DIR" || exit
+SCRIPT_DIR="$(pwd)"
+
+cp -v "$SCRIPT_DIR"/usr/bin/* /usr/bin/
+mkdir -p /usr/lib/osgit
+cp -v "$SCRIPT_DIR"/usr/lib/osgit/* /usr/lib/osgit/
+
+original="$(sha256sum "$SCRIPT_DIR"/usr/bin/osgit | head -c 64)"
+
+executable_path="/usr/bin/osgit"
+installed="$(sha256sum "$executable_path" | head -c 64)"
+
+if test "$original" = "$installed"; then
+  echo 'Installed correctly.'
+else
+  echo 'Checksums of your installed file and this version do not match.'
+fi
