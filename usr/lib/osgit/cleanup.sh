@@ -1,10 +1,7 @@
 #!/bin/sh
 
 cleanup() {
-  for file in "$TMP"/packages.current \
-    "$TMP"/packages.tocheckout; do
-    test -f "$file" && rm "$file"
-  done
+  test -n "$TMP" && test -d "$TMP" && rm -rf "$TMP"
 }
 
 clean_exit() {

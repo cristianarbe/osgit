@@ -60,9 +60,13 @@ fn_checkout() {
 
 fn_rollback() {
   check_root
+
   state="$1"
 
-  test -z "$state" && state="HEAD~1"
+  if test -z "$state"; then
+    display_menu "$(fn_log)"
+    state="$(get_menu_result | cut -d ' ' -f 1)"
+  fi
 
   commit_previous_state "$state"
   fn_deploy "$OSGIT_PROFILE"/packages
