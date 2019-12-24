@@ -41,6 +41,8 @@ main() {
     get_installed >"$TMP"/packages.current
   fi
 
+  # shellcheck disable=SC2048
+  # shellcheck disable=SC2086
   case "$option" in
   a*) fn_add $* ;;
   d*) fn_deploy $* ;;
