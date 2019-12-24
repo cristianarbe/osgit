@@ -22,10 +22,6 @@ startup() {
   cd "$OSGIT_PROFILE" ||
     fatal "Could not get into $OSGIT_PROFILE"
 
-<<<<<<< HEAD:.local/bin/osgit
-  test ! -d .git && git init
-  return 0
-=======
   if test ! -d .git; then
     git init
     get_installed >"$OSGIT_PROFILE"/packages
@@ -34,7 +30,6 @@ startup() {
 
   test ! -d "$TMP" && mkdir "$TMP"
   get_installed >"$TMP"/packages.current
->>>>>>> devel:usr/bin/osgit
 }
 
 main() {
