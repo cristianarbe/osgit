@@ -2,7 +2,8 @@
 
 set -e
 
-OSGIT_PROFILE="$HOME/.osgit"
+OSGIT_PROFILE="/var/cache/osgit"
+TMP="/tmp/osgit"
 VERSION="0.1"
 
 if test -z "$APP_ROOT_DIR"; then
@@ -10,7 +11,7 @@ if test -z "$APP_ROOT_DIR"; then
   APP_ROOT_DIR="$(pwd)"/..
 fi
 
-for lib in apt cleanup commands diffs errors git print; do
+for lib in apt cleanup commands diffs errors git print root; do
   # shellcheck disable=SC1090
   . "$APP_ROOT_DIR"/lib/osgit/"$lib".sh
 done
@@ -21,8 +22,19 @@ startup() {
   cd "$OSGIT_PROFILE" ||
     fatal "Could not get into $OSGIT_PROFILE"
 
+<<<<<<< HEAD:.local/bin/osgit
   test ! -d .git && git init
   return 0
+=======
+  if test ! -d .git; then
+    git init
+    get_installed >"$OSGIT_PROFILE"/packages
+    add_commit "First commit"
+  fi
+
+  test ! -d "$TMP" && mkdir "$TMP"
+  get_installed >"$TMP"/packages.current
+>>>>>>> devel:usr/bin/osgit
 }
 
 main() {

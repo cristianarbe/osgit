@@ -3,7 +3,7 @@
 apt_update() {
   printf "Updating list of packages... "
   if [ -z "$(find /var/cache/apt/pkgcache.bin -mmin -5)" ]; then
-    sudo apt-get -q update >/dev/null
+    apt-get -q update >/dev/null
   fi
   printf "Done\\n"
 }
@@ -40,10 +40,10 @@ propose_to_user() {
 
 # shellcheck disable=SC2068
 apt_rm() {
-  sudo apt-get -q purge $@ ||
+  apt-get -q purge $@ ||
     fatal "apt-get purge failed"
 
-  sudo apt-get -q autoremove
+  apt-get -q autoremove
 }
 
 # shellcheck disable=SC2068
@@ -52,14 +52,14 @@ apt_install() {
 
   test -n "$1" && available_versions "$1"
 
-  sudo apt-get -q install $@ ||
+  apt-get -q install $@ ||
     fatal "apt-get install failed"
 }
 
 apt_upgrade() {
   apt_update
 
-  sudo apt-get -q upgrade -y ||
+  apt-get -q upgrade -y ||
     fatal "apt-get upgrade failed"
 }
 
