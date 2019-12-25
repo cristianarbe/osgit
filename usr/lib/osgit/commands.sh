@@ -81,7 +81,7 @@ fn_rollback() {
 fn_log() {
   n=10
 
-  test "$#" -ne 0 && n="$1"
+  test -n "$n" && n="$1"
 
   git log --oneline | head -n "$n"
 }
