@@ -2,9 +2,10 @@
 
 apt_update() {
   printf "Updating list of packages... "
-
-  apt-get -q update >/dev/null
-
+  updated_recently="$(find /var/cache/apt/pkgcache.bin -mmin -5)"
+  if test -z "$updated_recently"; then
+    apt-get -q update >/dev/null
+  fi
   printf "Done\\n"
 }
 
@@ -16,19 +17,28 @@ update_packages_and_git() {
 }
 
 show_packages() {
+  : "${2=}"
+
   if test -z "$2"; then
     echo "No packages will be $1"
-    return
+    return 1
   fi
 
   echo "The following packages will be $1:"
   print_list "$2"
+  echo
+  return 0
 }
 
 propose_to_user() {
-  show_packages "installed" "$1"
-  echo ""
-  show_packages "REMOVED" "$2"
+  anything_to_do=false
+
+  show_packages "installed" "$1" && anything_to_do=true
+  show_packages "REMOVED" "$2" && anything_to_do=true
+
+  if ! "$anything_to_do"; then
+    clean_exit "Nothing to do."
+  fi
 
   printf "Do you want to continue? [y/N] " && read -r response
 
@@ -52,7 +62,7 @@ apt_install() {
     apt_update
   fi
 
-  test -n "$1" && available_versions "$1"
+  available_versions "$1"
 
   apt-get -q install $@ ||
     fatal "apt-get install failed"
@@ -75,13 +85,13 @@ available_versions() {
       sed 's/|/=/g' | sort | uniq)"
 
     if test -n "$versions"; then
-      echo "Please specify a version, available versions are:"
-      print_list "$versions"
+      echo "Please specify a version, available versions are:" >&2
+      print_list "$versions" >&2
+      error
     else
-      echo "No available versions found for '$1'"
+      error "No available versions found for '$1'"
     fi
 
-    clean_exit
     ;;
   esac
 }
