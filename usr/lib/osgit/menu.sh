@@ -29,5 +29,5 @@ display_menu() {
 }
 
 get_menu_result() {
-  cat "$TMP/commit"
+  cat "$TMP"/commit
 }
