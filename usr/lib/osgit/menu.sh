@@ -29,5 +29,7 @@ display_menu() {
 }
 
 get_menu_result() {
-  cat "$TMP"/commit
+  if ! cat "$TMP"/commit 2>/dev/null; then
+    fatal "Can't cat tmp file"
+  fi
 }
