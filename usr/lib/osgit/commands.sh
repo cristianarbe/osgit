@@ -14,7 +14,9 @@ fn_deploy() {
   ! propose_to_user "$added" "$removed" && clean_exit
 
   # shellcheck disable=SC2086
-  apt_install $added && apt_rm $removed
+  test -n "$added" && apt_install $added
+  # shellcheck disable=SC2086
+  test -n "$removed" && apt_rm $removed
   cp "$reference" "$OSGIT_PROFILE"/packages
 }
 
@@ -70,8 +72,8 @@ fn_rollback() {
   if test "$#" -ne 0; then
     state="$1"
   else
-    state="$(get_menu_result | cut -d ' ' -f 1)"
     display_menu "$(fn_log "")"
+    state="$(get_menu_result | cut -d ' ' -f 1)"
   fi
 
   commit_previous_state "$state"
@@ -81,7 +83,7 @@ fn_rollback() {
 fn_log() {
   n=10
 
-  if test "$#" -ne 0 && test -n "$n"; then
+  if test "$#" -ne 0 && test -n "$1"; then
     n="$1"
   fi
 
