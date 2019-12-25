@@ -158,7 +158,6 @@ fn_help() {
   echo "  help - shows this"
   echo "  list - lists installed packages"
   echo "  pin - pins the currently installed version of a package"
-  echo "  pin - unpins a package"
   echo "  revert - reverts a specific commit"
   echo "  rm - uninstall packages"
   echo "  rollback - change the installed packages to a specific commit"
@@ -166,4 +165,5 @@ fn_help() {
   echo "  shows osgit commit log"
   echo "  update - updates cache"
   echo "  upgrade - upgrade the system by installing/upgrading packages"
+  echo "  upin - unpins a package"
 }
