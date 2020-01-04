@@ -1,120 +1,117 @@
-#!/bin/sh
+# Copyright 2019 Cristian Ariza
+# Licensed under the EUPL
+#
+# Main commands that can be called by osgit
 
-fn_deploy() {
-  check_root
+PREFIX="$(cd "$(dirname "$0")" || exit; pwd)"/../..
+OSGITPATH="$PREFIX"/var/cache/osgit
 
-  reference="$OSGIT_PROFILE"/packages
-  test "$#" -ne 0 && reference="$1"
+# shellcheck source=../lib/osgit/apt.sh
+. "$PREFIX"/lib/osgit/apt.sh
+# shellcheck source=../lib/osgit/log.sh
+. "$PREFIX"/lib/osgit/log.sh
+# shellcheck source=../lib/osgit/packages.sh
+. "$PREFIX"/lib/osgit/packages.sh
+# shellcheck source=../lib/osgit/git.sh
+. "$PREFIX"/lib/osgit/git.sh
 
-  changes="$(diff_with_current "$reference")"
+__propose_to_user() {
+  test "$#" -ne 2 && log_fatal "incorrect number of arguments"
 
-  added="$(fn_plus "$changes")"
-  removed="$(fn_minus "$changes")"
+  if ! apt_show_packages "installed" "$1" && ! apt_show_packages "REMOVED" "$2"; then
+    echo "Nothing to do." && return
+  fi
 
-  ! propose_to_user "$added" "$removed" && clean_exit
+  printf "Do you want to continue? [y/N] " && read -r response
 
+  case "$response" in
+    y | Y | yes | YES) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+__deploy(){
+  test "$#" -ne 1 && log_fatal "incorrect number of arguments"
+
+  added="$(comm -12 "$OSGITPATH"/packages "$1")"
+  removed="$(comm -23 "$OSGITPATH"/packages "$1")"
+  ! __propose_to_user "$added" "$removed" && log_fatal "aborted by the user"
   # shellcheck disable=SC2086
-  apt_install $added && apt_rm $removed
-  cp "$reference" "$OSGIT_PROFILE"/packages
+  apt_install $added
+  # shellcheck disable=SC2086
+  apt_rm $removed
 }
 
-fn_clone() {
-  test "$#" -eq 0 && clean_exit "Nothing to do."
-  check_root
-  make_this_master
-  fn_deploy "$1"
-  add_commit "Clone from $1"
+commands_clone() {
+  test "$#" -ne 1 && log_fatal "incorrect number of arguments"
+
+  packages_open
+  __deploy "$1"
+  packages_close "Clone from $1"
 }
 
-fn_add() {
-  test "$#" -eq 0 && clean_exit "Nothing to do."
+commands_add() {
+  test "$#" -lt 1 && log_fatal "incorrect number of arguments"
 
-  check_root
-  make_this_master
-
+  packages_open
   # shellcheck disable=SC2068
   apt_install $@
-  update_packages_and_git "Add $*"
+  packages_close "Add $*"
 }
 
-fn_rm() {
-  test "$#" -eq 0 && clean_exit "Nothing to do."
-  check_root
-  make_this_master
+commands_rm() {
+  test "$#" -lt 1 && log_fatal "incorrect number of arguments"
 
-  apt_rm "$@"
-  update_packages_and_git "Remove $*"
+  packages_open
+  # shellcheck disable=SC2068
+  apt_rm $@
+  packages_close "Remove $*"
 }
 
-fn_upgrade() {
-  check_root
-  make_this_master
+commands_upgrade() {
+  test "$#" -ne 0 && log_fatal "incorrect number of arguments"
 
+  packages_open
   apt_upgrade
-  update_packages_and_git "Upgrade packages"
+  packages_close "System upgrade"
 }
 
-fn_checkout() {
-  test "$#" -eq 0 && clean_exit "Nothing to do."
-  check_root
-  generate_checkout_file "$@"
+commands_rollback() {
+  test "$#" -ne 1 && log_fatal "arguments not specified"
 
-  fn_deploy "$TMP"/packages.tocheckout
-  force_checkout "$@"
+  packages_open
+  git_commit_previous_state "$1"
+  __deploy "$OSGITPATH"/packages
+  packages_close
+
 }
 
-fn_rollback() {
-  check_root
-  state=
+commands_log() { git log --oneline; }
 
-  if test "$#" -ne 0; then
-    state="$1"
-  else
-    state="$(get_menu_result | cut -d ' ' -f 1)"
-    display_menu "$(fn_log "")"
-  fi
+commands_list() {
+  ! cat "$OSGITPATH"/packages 2> /dev/null &&
+    log_fatal "$OSGITPATH/packages not found"
+  }
 
-  commit_previous_state "$state"
-  fn_deploy "$OSGIT_PROFILE"/packages
-}
-
-fn_log() {
-  n=10
-
-  test "$#" -ne 0 && n="$1"
-
-  git log --oneline | head -n "$n"
-}
-
-fn_list() {
-  if test ! -f "$OSGIT_PROFILE"/packages; then
-    update_packages_and_git "Regenerate cache"
-  fi
-
-  cat "$OSGIT_PROFILE"/packages
-}
-
-fn_update() {
-  check_root
+commands_update() {
+  packages_open
   apt_update
-
-  get_installed >"$OSGIT_PROFILE"/packages
+  packages_close "Update"
 }
 
-fn_show() {
-  test "$#" -eq 0 && clean_exit "Nothing to do."
-  full_show="$(git show "$1")"
+commands_show() {
+  test "$#" -ne 1 && log_fatal "incorrect number of arguments"
 
-  echo "Added:"
-  print_list "$(fn_plus "$full_show")"
-  echo "Removed:"
-  print_list "$(fn_minus "$full_show")"
+  git show "$1"
 }
 
-fn_pin() {
-  test "$#" -eq 0 && clean_exit "Nothing to do."
-  check_root
-  version="$(get_package_version "$1")"
+commands_pin() {
+  test "$#" -ne 1 && log_fatal "incorrect number of arguments"
+
+  __check_root
+
+  version="$(apt-cache policy "$1" | grep '\*\*' | cut -d ' ' -f 3)"
+
   {
     echo "package: $1"
     echo "Pin: version $version"
@@ -122,27 +119,32 @@ fn_pin() {
   } >>/etc/apt/preferences
 }
 
-fn_revert() {
-  test "$#" -eq 0 && clean_exit "Nothing to do."
-  check_root
+commands_revert() {
+  test "$#" -ne 1 && log_fatal "incorrect number of arguments"
+
+  packages_open
   git revert --no-commit "$1"
   git commit -m "Revert $1"
-  fn_deploy
+  __deploy "$OSGITPATH"/packages
+  packages_close "Revert to $1"
 }
 
-fn_unpin() {
-  test "$#" -eq 0 && clean_exit "Nothing to do."
+commands_unpin() {
+  test "$#" -ne 1 && log_fatal "incorrect number of arguments"
+
   check_root
   pins="$(grep -n "$1" /etc/apt/preferences | cut -d ':' -f 1)"
 
   for pin in $pins; do
-    end=$((pin + 2))
+    end="$((pin + 2))"
     sed -i.bak -e "${pin},${end}d" /etc/apt/preferences
   done
 }
 
-fn_help() {
-  echo "osgit $VERSION"
+commands_help() {
+  test "$#" -ne 1 && log_fatal "incorrect number of arguments"
+
+  echo "osgit $1"
   echo "Usage: osgit [options] command"
   echo ""
   echo "osgit is a commandline apt-wrapper and provides commands for"
@@ -162,4 +164,14 @@ fn_help() {
   echo "  shows osgit commit log"
   echo "  update - updates cache"
   echo "  upgrade - upgrade the system by installing/upgrading packages"
+}
+
+commands_init(){
+  __check_root
+
+  test ! -d "$OSGITPATH" && mkdir "$OSGITPATH"
+
+  if test ! -d .git; then
+    git init && packages_close "First commit"
+  fi
 }

@@ -1,40 +1,29 @@
-#!/bin/sh
+# Copyright 2019 Cristian Ariza
+# Licensed under the EUPL
+#
+# Shorts for git commands
 
-add_commit() {
-  git add "$OSGIT_PROFILE"/packages -f
+PREFIX="$(cd "$(dirname "$0")" || exit; pwd)"/../..
+OSGITPATH="$PREFIX"/var/cache/osgit
+
+git_add_commit() {
+  git add "$OSGITPATH"/packages -f
   git commit -m "$1"
 }
 
-force_checkout() {
-  git checkout -- .
-  git checkout master
-  git checkout "$@"
-}
-
-make_this_master() {
+git_make_this_master() {
   this="$(git branch | grep -F '*' | sed 's/* //g')"
 
-  case $this in
-  master) ;;
-  *)
-    # keep the content of this branch, but record a merge
-    git merge --strategy=ours master
-    git checkout master
-    # fast-forward master up to the merge
-    git merge "$this"
-    ;;
-  esac
+  test "$this" == "master" && return
+
+  # keep the content of this branch, but record a merge
+  git merge --strategy=ours master
+  git checkout master
+  # fast-forward master up to the merge
+  git merge "$this"
 }
 
-remove_last_commit() { git reset --hard HEAD^; }
-
-generate_checkout_file() {
-  force_checkout "$@"
-  cp "$OSGIT_PROFILE"/packages "$TMP"/packages.tocheckout
-  force_checkout master
-}
-
-commit_previous_state() {
+git_commit_previous_state() {
   git checkout -f "$1" -- .
-  add_commit "Rollback to $1"
+  git_add_commit "Rollback to $1"
 }

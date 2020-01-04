@@ -1,96 +1,78 @@
 #!/bin/sh
+# Copyright 2019 Cristian Ariza
+# Licensed under the EUPL
+#
+# Main executable
 
-# Treat undefined variables as errors
 set -u
 
-export OSGIT_PROFILE="/var/cache/osgit"
-export TMP="/tmp/osgit"
-export VERSION="0.4.0"
+export VERSION="0.5.0"
+OSGITPATH="$PREFIX"/var/cache/osgit
+PREFIX="$(cd "$(dirname "$0")" || exit; pwd)"/..
 
-APP_ROOT_DIR="$(
-  cd "$(dirname "$0")" || exit
-  pwd
-)"/..
-export APP_ROOT_DIR
+# shellcheck source=../lib/osgit/apt.sh
+. "$PREFIX"/lib/osgit/apt.sh
+# shellcheck source=../lib/osgit/commands.sh
+. "$PREFIX"/lib/osgit/commands.sh
+# shellcheck source=../lib/osgit/log.sh
+. "$PREFIX"/lib/osgit/log.sh
 
-for lib in apt cleanup commands diffs errors git print root menu; do
-  # shellcheck disable=SC1090
-  . "$APP_ROOT_DIR"/lib/osgit/"$lib".sh
-done
+__cleanup() {
+  test -z "$TMP" && log_fatal "TMP is not set"
 
-startup() {
-  test ! -d "$OSGIT_PROFILE" && mkdir "$OSGIT_PROFILE"
-
-  if test -z "$TMP"; then
-    fatal "TMP is not set"
+  if test -d "$TMP"; then
+    rm -f "$TMP"/* ||
+      log_fatal "no write access to tmp folder, bad previous cleanup?"
   fi
+}
 
-  if test ! -d "$TMP"; then
-    mkdir "$TMP"
-    chmod 777 "$TMP"
-  fi
+__startup() {
+  cd "$OSGITPATH" ||
+    log_fatal "Could not get into $OSGITPATH"
 
-  cd "$OSGIT_PROFILE" ||
-    fatal "Could not get into $OSGIT_PROFILE"
-
-  if test ! -d .git; then
-    git init
-    get_installed >"$OSGIT_PROFILE"/packages
-    add_commit "First commit"
-  fi
-
-  get_installed >"$TMP"/packages.current
+  apt_get_installed >"$TMP"/packages.current
 }
 
 main() {
-  test "$#" -eq 0 && error "Missing command"
-
-  command=
   args=
 
-  while test "$#" -gt 0; do
-    case "$1" in
-    -d*) set -x ;;
-    *)
-      break
-      ;;
-    esac
-    shift
-  done
+  if test "$#" -eq 0 || test "$#" -lt 2 && test "$1" == "-d"; then
+    log_fatal "missing command"
+  elif test "$1" == "-d"; then
+    set -x && shift
+  fi
 
-  command="$1"
-  shift
-  test "$#" -ne 0 && args="$*"
+  subcommand="$1" && shift
 
-  startup
+  test "$#" -gt 1 && args="$*"
 
-  get_installed >"$TMP"/packages.current
+  __startup
 
-  # shellcheck disable=SC2048
   # shellcheck disable=SC2086
-  case "$command" in
-  a* | i*) fn_add $args ;;
-  d*) fn_deploy $args ;;
-  hi*) fn_log $args ;;
-  he*) fn_help ;;
-  li*) fn_list $args ;;
-  lo*) fn_log $args ;;
-  pi*) fn_pin $args ;;
-  pu*) fn_rm $args ;;
-  rem*) fn_rm $args ;;
-  rev*) fn_revert $args ;;
-  rm) fn_rm $args ;;
-  ro*) fn_rollback $args ;;
-  s*) fn_show $args ;;
-  uni*) fn_rm $args ;;
-  unp*) fn_unpin $args ;;
-  upd*) fn_update $args ;;
-  upg*) fn_upgrade $args ;;
-  v*) echo "osgit $VERSION" ;;
-  *) error "Invalid operation '$command'" ;;
+  case "$subcommand" in
+    a*) commands_add $args ;;
+    c*) commands_clone $args ;;
+    hi*) commands_log $args ;;
+    ini*) commands_init ;;
+    ins*) commands_add $args ;;
+    li*) commands_list $args ;;
+    lo*) commands_log $args ;;
+    pi*) commands_pin $args ;;
+    pu*) commands_rm $args ;;
+    rem*) commands_rm $args ;;
+    rev*) commands_revert $args ;;
+    rm) commands_rm $args ;;
+    ro*) commands_rollback $args ;;
+    s*) commands_show $args ;;
+    uni*) commands_rm $args ;;
+    unp*) commands_unpin $args ;;
+    upd*) commands_update $args ;;
+    upg*) commands_upgrade $args ;;
+    v*) echo "osgit $VERSION" ;;
+    *) log_fatal "$(commands_help "$VERSION")" ;;
   esac
 
-  clean_exit
+  __cleanup
 }
 
 main "$@"
