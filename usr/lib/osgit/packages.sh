@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Copyright 2019 Cristian Ariza
 # Licensed under the EUPL
 #
@@ -27,10 +26,4 @@ packages_close(){
   test "$#" -eq 0 && log_fatal "message not specified"
   packages_update
   git_add_commit "$1"
-=======
-#!/bin/sh
-
-packages_update(){
-  get_installed >"$OSGIT_PROFILE"/packages
->>>>>>> 0dd2f41bb05e0c530164e5f20857bfd3068bf5be
 }
