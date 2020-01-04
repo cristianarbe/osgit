@@ -3,7 +3,7 @@
 #
 # Apt related commands
 
-PREFIX="$(cd "$(dirname "$0")" || exit; pwd)"/..
+PREFIX="$(cd "$(dirname "$0")"/.. || exit; pwd)"
 
 # shellcheck source=../lib/osgit/log.sh
 . "$PREFIX"/lib/osgit/log.sh
@@ -13,12 +13,12 @@ __available_versions() {
     sed 's/|/=/g' | sort | uniq)"
 
   if test -z "$versions"; then
-    echo "no available version for $1"
+    echo "no available versions for $1"
     return 1
   fi
 
-  msg="available versions are:"
-  echo "${msg}$(__list_print "$versions")"
+  echo "need to specify a version, available versions are:"
+  __print_list "$versions"
   return 0
 }
 
@@ -31,7 +31,7 @@ __print_list() {
 }
 
 apt_get_installed() {
-  dpkg-query -Wf '${Package}=${Version}\n'
+  dpkg-query -Wf '${Package}=${Version}\n' | sort
 }
 
 apt_rm() {
@@ -41,8 +41,9 @@ apt_rm() {
   }
 
 apt_show_packages() {
-  if test "$#" -ne 2; then
+  if test "$#" -ne 2 || test -z "$2"; then
     echo "No packages will be $1"
+    echo
     return 1
   fi
 
@@ -59,13 +60,14 @@ apt_update() {
 }
 
 apt_install() {
-  case "$1" in
-    *=*) ;;
-    *)
-      msg="$msg$(__available_versions "$1")"
-      log_fatal "$msg"
-      ;;
-  esac
+  for package in $@; do
+    case "$package" in
+      *=*) ;;
+      *)
+        log_fatal "$(__available_versions "$package")"
+        ;;
+    esac
+  done
 
   apt_update ||
     log_fatal "apt-get update failed"
@@ -73,7 +75,7 @@ apt_install() {
   # shellcheck disable=SC2068
   apt-get -q install $@ ||
     log_fatal "apt-get install failed"
-}
+  }
 
 apt_upgrade() {
   apt_update

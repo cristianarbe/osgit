@@ -4,7 +4,7 @@
 # Logging
 
 log_fatal() {
-  test "$#" -ne 0 && echo "FATAL: $*" >&2
+  echo "E: $*" >&2
   exit 1
 }
 

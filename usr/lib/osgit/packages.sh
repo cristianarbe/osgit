@@ -3,27 +3,23 @@
 #
 # Manages the packages file
 
-PREFIX="$(cd "$(dirname "$0")" || exit; pwd)"/../..
+PREFIX="$(cd "$(dirname "$0")"/.. || exit; pwd)"
 OSGITPATH="$PREFIX"/var/cache/osgit
 
 # shellcheck source=../lib/osgit/apt.sh
 . "$PREFIX"/lib/osgit/apt.sh
-
-__check_root() {
-  test "$(id -u)" -ne 0 && log_fatal "this option must be run as root"
-}
+# shellcheck source=../lib/osgit/log.sh
+. "$PREFIX"/lib/osgit/log.sh
 
 packages_update(){
-  get_installed >"$OSGITPATH"/packages
-}
-
-packages_open(){
-  __check_root
-  git_make_this_master
+  apt_get_installed >"$OSGITPATH"/packages
 }
 
 packages_close(){
-  test "$#" -eq 0 && log_fatal "message not specified"
+  if test "$#" -eq 0; then
+    log_fatal "message not specified"
+  fi
+
   packages_update
-  git_add_commit "$1"
+  git_add_commit "$1" > /dev/null 2>&1
 }

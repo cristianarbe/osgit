@@ -3,7 +3,7 @@
 #
 # Shorts for git commands
 
-PREFIX="$(cd "$(dirname "$0")" || exit; pwd)"/../..
+PREFIX="$(cd "$(dirname "$0")"/.. || exit; pwd)"
 OSGITPATH="$PREFIX"/var/cache/osgit
 
 git_add_commit() {
@@ -14,7 +14,9 @@ git_add_commit() {
 git_make_this_master() {
   this="$(git branch | grep -F '*' | sed 's/* //g')"
 
-  test "$this" == "master" && return
+  if test "$this" = "master"; then
+    return
+  fi
 
   # keep the content of this branch, but record a merge
   git merge --strategy=ours master
