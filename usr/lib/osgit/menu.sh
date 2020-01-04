@@ -1,6 +1,6 @@
 #!/bin/sh
 
-display_menu() {
+menu_display() {
   options="$1"
   commit="$TMP/commit"
 
@@ -28,6 +28,6 @@ display_menu() {
   done
 }
 
-get_menu_result() {
+menu_get() {
   cat "$TMP"/commit
 }

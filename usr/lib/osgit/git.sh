@@ -1,40 +1,37 @@
 #!/bin/sh
 
-add_commit() {
+git_add_commit() {
   git add "$OSGIT_PROFILE"/packages -f
   git commit -m "$1"
 }
 
-force_checkout() {
+git_force_checkout() {
   git checkout -- .
   git checkout master
   git checkout "$@"
 }
 
-make_this_master() {
+git_make_this_master() {
   this="$(git branch | grep -F '*' | sed 's/* //g')"
 
-  case $this in
-  master) ;;
-  *)
+  if "$this" != "master"; then
     # keep the content of this branch, but record a merge
     git merge --strategy=ours master
     git checkout master
     # fast-forward master up to the merge
     git merge "$this"
-    ;;
-  esac
+  fi
 }
 
-remove_last_commit() { git reset --hard HEAD^; }
+git_remove_last_commit() { git reset --hard HEAD^; }
 
-generate_checkout_file() {
-  force_checkout "$@"
+git_generate_checkout_file() {
+  git_force_checkout "$@"
   cp "$OSGIT_PROFILE"/packages "$TMP"/packages.tocheckout
-  force_checkout master
+  git_force_checkout master
 }
 
-commit_previous_state() {
+git_commit_previous_state() {
   git checkout -f "$1" -- .
-  add_commit "Rollback to $1"
+  git_add_commit "Rollback to $1"
 }

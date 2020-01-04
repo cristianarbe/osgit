@@ -3,94 +3,67 @@
 # Treat undefined variables as errors
 set -u
 
+LIB="$ROOT"/lib/osgit && export LIB
+ROOT="$(cd "$(dirname "$0")" || exit; pwd)"/.. && export ROOT_DIR
 export OSGIT_PROFILE="/var/cache/osgit"
 export TMP="/tmp/osgit"
 export VERSION="0.4.0"
 
-APP_ROOT_DIR="$(
-  cd "$(dirname "$0")" || exit
-  pwd
-)"/..
-export APP_ROOT_DIR
 
-for lib in apt cleanup commands diffs errors git print root menu; do
-  # shellcheck disable=SC1090
-  . "$APP_ROOT_DIR"/lib/osgit/"$lib".sh
-done
+# shellcheck disable=SC1090
+. "$LIB"/apt.sh
+# shellcheck disable=SC1090
+. "$LIB"/commands.sh
+# shellcheck disable=SC1090
+. "$LIB"/log.sh
 
-startup() {
-  test ! -d "$OSGIT_PROFILE" && mkdir "$OSGIT_PROFILE"
-
-  if test -z "$TMP"; then
-    fatal "TMP is not set"
-  fi
-
-  if test ! -d "$TMP"; then
-    mkdir "$TMP"
-    chmod 777 "$TMP"
-  fi
-
+__startup() {
   cd "$OSGIT_PROFILE" ||
-    fatal "Could not get into $OSGIT_PROFILE"
+    log_fatal "Could not get into $OSGIT_PROFILE"
 
-  if test ! -d .git; then
-    git init
-    get_installed >"$OSGIT_PROFILE"/packages
-    add_commit "First commit"
-  fi
-
-  get_installed >"$TMP"/packages.current
+  apt_get_installed >"$TMP"/packages.current
 }
 
 main() {
-  test "$#" -eq 0 && error "Missing command"
+  test "$#" -eq 0 && log_fatal "Missing command"
 
-  command=
-  args=
+  command=; args=
 
-  while test "$#" -gt 0; do
-    case "$1" in
-    -d*) set -x ;;
-    *)
-      break
-      ;;
-    esac
-    shift
-  done
+  test "$1" == "-d" && set -x && shift
 
-  command="$1"
-  shift
+  subcommand="$1" && shift
+
   test "$#" -ne 0 && args="$*"
 
-  startup
-
-  get_installed >"$TMP"/packages.current
+  __startup
 
   # shellcheck disable=SC2048
   # shellcheck disable=SC2086
-  case "$command" in
-  a* | i*) fn_add $args ;;
-  d*) fn_deploy $args ;;
-  hi*) fn_log $args ;;
-  he*) fn_help ;;
-  li*) fn_list $args ;;
-  lo*) fn_log $args ;;
-  pi*) fn_pin $args ;;
-  pu*) fn_rm $args ;;
-  rem*) fn_rm $args ;;
-  rev*) fn_revert $args ;;
-  rm) fn_rm $args ;;
-  ro*) fn_rollback $args ;;
-  s*) fn_show $args ;;
-  uni*) fn_rm $args ;;
-  unp*) fn_unpin $args ;;
-  upd*) fn_update $args ;;
-  upg*) fn_upgrade $args ;;
-  v*) echo "osgit $VERSION" ;;
-  *) error "Invalid operation '$command'" ;;
+  case "$subcommand" in
+    a*) commands_add $args ;;
+    d*) commands_deploy $args ;;
+    he*) commands_help ;;
+    hi*) commands_log $args ;;
+    ini*) commands_init ;;
+    ins*) commands_add $args ;;
+    li*) commands_list $args ;;
+    lo*) commands_log $args ;;
+    pi*) commands_pin $args ;;
+    pu*) commands_rm $args ;;
+    rem*) commands_rm $args ;;
+    rev*) commands_revert $args ;;
+    rm) commands_rm $args ;;
+    ro*) commands_rollback $args ;;
+    s*) commands_show $args ;;
+    uni*) commands_rm $args ;;
+    unp*) commands_unpin $args ;;
+    upd*) commands_update $args ;;
+    upg*) commands_upgrade $args ;;
+    v*) echo "osgit $VERSION" ;;
+    *) log_fatal "Invalid operation '$command'" ;;
   esac
 
-  clean_exit
+  exit_clean
 }
 
 main "$@"

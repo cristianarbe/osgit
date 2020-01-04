@@ -1,84 +1,86 @@
 #!/bin/sh
 
-fn_deploy() {
-  check_root
+commands_deploy() {
+  os_check_root
 
   reference="$OSGIT_PROFILE"/packages
   test "$#" -ne 0 && reference="$1"
 
-  changes="$(diff_with_current "$reference")"
+  added="$(comm -12 "$OSGIT_PROFILE"/packages "$reference")"
+  removed="$(comm -23 "$OSGIT_PROFILE"/packages "$reference")"
 
-  added="$(fn_plus "$changes")"
-  removed="$(fn_minus "$changes")"
-
-  ! propose_to_user "$added" "$removed" && clean_exit
+  ! propose_to_user "$added" "$removed" && log_fatal "aborted by the user"
 
   # shellcheck disable=SC2086
   apt_install $added && apt_rm $removed
-  cp "$reference" "$OSGIT_PROFILE"/packages
+  packages_update
 }
 
-fn_clone() {
-  test "$#" -eq 0 && clean_exit "Nothing to do."
-  check_root
-  make_this_master
-  fn_deploy "$1"
-  add_commit "Clone from $1"
+commands_clone() {
+  test "$#" -eq 0 && log_fatal "file not specified"
+
+  os_check_root
+  git_make_this_master
+
+  cp "$1" "$OSGIT_PROFILE"/packages
+  commands_deploy "$1"
+  git_add_commit "Clone from $1"
 }
 
-fn_add() {
-  test "$#" -eq 0 && clean_exit "Nothing to do."
+commands_add() {
+  test "$#" -eq 0 && log_fatal "arguments not specified"
 
-  check_root
-  make_this_master
+  os_check_root
+  git_make_this_master
 
   # shellcheck disable=SC2068
   apt_install $@
-  update_packages_and_git "Add $*"
+  packages_update
+  git_add_commit "Add $*"
 }
 
-fn_rm() {
-  test "$#" -eq 0 && clean_exit "Nothing to do."
-  check_root
-  make_this_master
+commands_rm() {
+  test "$#" -eq 0 && log_fatal "arguments not specified"
 
+  os_check_root
+  git_make_this_master
+
+  # shellcheck disable=SC2068
   apt_rm "$@"
-  update_packages_and_git "Remove $*"
+  packages_update
+  git_add_commit "Remove $*"
 }
 
-fn_upgrade() {
+commands_upgrade() {
   check_root
   make_this_master
 
   apt_upgrade
-  update_packages_and_git "Upgrade packages"
+  packages_update
+  git_add_commit "System upgrade"
 }
 
-fn_checkout() {
-  test "$#" -eq 0 && clean_exit "Nothing to do."
+commands_checkout() {
+  test "$#" -eq 0 && log_fatal "arguments not specified"
+
   check_root
-  generate_checkout_file "$@"
+  git_generate_checkout_file "$@"
 
-  fn_deploy "$TMP"/packages.tocheckout
-  force_checkout "$@"
+  commands_deploy "$TMP"/packages.tocheckout
+  git_force_checkout "$@"
 }
 
-fn_rollback() {
+commands_rollback() {
+  test "$#" -eq 0 && log_fatal "arguments not specified"
+
   check_root
-  state=
+  state="$1"
 
-  if test "$#" -ne 0; then
-    state="$1"
-  else
-    state="$(get_menu_result | cut -d ' ' -f 1)"
-    display_menu "$(fn_log "")"
-  fi
-
-  commit_previous_state "$state"
-  fn_deploy "$OSGIT_PROFILE"/packages
+  git_commit_previous_state "$state"
+  command_deploy "$OSGIT_PROFILE"/packages
 }
 
-fn_log() {
+commands_log() {
   n=10
 
   test "$#" -ne 0 && n="$1"
@@ -86,53 +88,54 @@ fn_log() {
   git log --oneline | head -n "$n"
 }
 
-fn_list() {
-  if test ! -f "$OSGIT_PROFILE"/packages; then
-    update_packages_and_git "Regenerate cache"
-  fi
+commands_list() {
+  test ! -f "$OSGIT_PROFILE"/packages &&
+    log_fatal "$OSGIT_PROFILE/packages not found"
 
   cat "$OSGIT_PROFILE"/packages
 }
 
-fn_update() {
+commands_update() {
   check_root
   apt_update
 
-  get_installed >"$OSGIT_PROFILE"/packages
+  packages_update
 }
 
-fn_show() {
-  test "$#" -eq 0 && clean_exit "Nothing to do."
-  full_show="$(git show "$1")"
+commands_show() {
+  test "$#" -eq 0 && log_fatal "arguments not specified"
 
-  echo "Added:"
-  print_list "$(fn_plus "$full_show")"
-  echo "Removed:"
-  print_list "$(fn_minus "$full_show")"
+  git show "$1"
 }
 
-fn_pin() {
-  test "$#" -eq 0 && clean_exit "Nothing to do."
+commands_pin() {
+  test "$#" -eq 0 && log_fatal "arguments not specified"
+
   check_root
-  version="$(get_package_version "$1")"
+
+  pkg_version="$(get_package_version "$1")"
+
   {
     echo "package: $1"
-    echo "Pin: version $version"
+    echo "Pin: version $pkg_version"
     echo "Pin-Priority: 1001"
   } >>/etc/apt/preferences
 }
 
-fn_revert() {
-  test "$#" -eq 0 && clean_exit "Nothing to do."
+commands_revert() {
+  test "$#" -eq 0 && log_fatal "arguments not specified"
   check_root
+
   git revert --no-commit "$1"
   git commit -m "Revert $1"
-  fn_deploy
+
+  commands_deploy
 }
 
-fn_unpin() {
-  test "$#" -eq 0 && clean_exit "Nothing to do."
+commands_unpin() {
+  test "$#" -eq 0 && log_fatal "arguments not specified"
   check_root
+
   pins="$(grep -n "$1" /etc/apt/preferences | cut -d ':' -f 1)"
 
   for pin in $pins; do
@@ -141,7 +144,7 @@ fn_unpin() {
   done
 }
 
-fn_help() {
+commands_help() {
   echo "osgit $VERSION"
   echo "Usage: osgit [options] command"
   echo ""
@@ -162,4 +165,16 @@ fn_help() {
   echo "  shows osgit commit log"
   echo "  update - updates cache"
   echo "  upgrade - upgrade the system by installing/upgrading packages"
+}
+
+commands_init(){
+  test ! -d "$OSGIT_PROFILE" && mkdir "$OSGIT_PROFILE"
+  test -z "$TMP" && fatal "TMP is not set"
+  test ! -d "$TMP" && mkdir "$TMP" && chmod 777 "$TMP"
+
+  if test ! -d .git; then
+    git init
+    get_installed >"$OSGIT_PROFILE"/packages
+    add_commit "First commit"
+  fi
 }
