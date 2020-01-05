@@ -1,4 +1,8 @@
 #!/bin/sh
+# Copyright 2019 Cristian Ariza
+# Licensed under the EUPL
+#
+# Installation script
 
 set -e
 
