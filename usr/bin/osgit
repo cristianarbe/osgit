@@ -18,64 +18,52 @@ ORIGIN="$(pwd)"
 # shellcheck source=../lib/osgit/log.sh
 . "$PREFIX"/lib/osgit/log.sh
 
-
-__check_root(){
-  if test "$(id -u)" != 0; then
-    log_fatal "this command must be executed as root"
-  fi
-}
-
 main() {
   args=
+  subcommand=
 
-  if test "$#" -eq 0; then
-    log_fatal "$(commands_help "$VERSION")"
-  elif test "$#" -lt 2 && test "$1" = '-d' ; then
-    log_fatal "$(commands_help "$VERSION")"
-  elif test "$1" = "-d"; then
-    set -x
+  while test "$#" != 0; do
+    if "$1" = "-d"; then
+      set -x
+    elif test -z "$subcommand"; then
+      subcommand="$1"
+    else
+      args="$*"
+      break
+    fi
+
     shift
-  fi
-
-  subcommand="$1"
-  shift
-
-  if test "$#" -gt 0; then
-    args="$*"
-  fi
+  done
 
   case "$subcommand" in
-    h* | v* | i*) ;;
-    *)
+    a* | c* | pi* | rev* | rm* | ro* | unp* | upd* | upg*)
+
       if ! cd "$OSGITPATH" 2> /dev/null; then
         log_fatal "Could not cd into $OSGITPATH"
       fi
-      ;;
-  esac
 
-  case "$subcommand" in
-    pi* | unp* | a* | c* | rev* | rm* | ro* | upd* | upgr* )
-      __check_root
-      git_make_this_master > /dev/null 2>&1
-      ;;
-  esac
-
-  case "$subcommand" in
-    pi* | un* | a* | c* | rev* | rm* | ro*)
-      if test "$#" -ne 1; then
-        log_fatal "incorrect number of arguments"
+      if test "$(id -u)" != 0; then
+        log_fatal "this command must be executed as root"
       fi
+
+      git_make_this_master > /dev/null 2>&1
+
+      case "$subcommand" in
+        c* | pi* | rev* | ro* | s* | unp*)
+          if test "$#" -ne 1; then
+            log_fatal "incorrect number of arguments"
+          fi
+          ;;
+      esac
       ;;
   esac
-
 
   # shellcheck disable=SC2086
   case "$subcommand" in
     a*) commands_add $args ;;
     c*) commands_clone "$ORIGIN"/$args ;;
-    h*) log_fatal "$(commands_help "$VERSION")" ;;
     i*) commands_init ;;
-    li*) commands_list $args ;;
+    li*) cat "$OSGITPATH"/packages ;;
     lo*) git log --oneline ;;
     pi*) commands_pin $args ;;
     rev*) commands_revert $args ;;
@@ -85,7 +73,8 @@ main() {
     unp*) commands_unpin $args ;;
     upd*) commands_update $args ;;
     upg*) commands_upgrade $args ;;
-    v*) echo "osgit $VERSION" ;;
+    v*) command_versions $args
+    '-v') echo "osgit $VERSION" ;;
     *) log_fatal "$(commands_help "$VERSION")" ;;
   esac
 

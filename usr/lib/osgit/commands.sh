@@ -17,25 +17,23 @@ OSGITPATH="$PREFIX"/var/cache/osgit
 
 __propose_to_user() {
   if ! apt_show_packages "installed" "$1" && ! apt_show_packages "REMOVED" "$2"; then
+    echo 'nothing to do'
     return
   fi
 
   printf "Do you want to continue? [y/N] "
-  read -r response
+  read -r -n 1 response
 
-  case "$response" in
-    y | Y | yes | YES) return 0 ;;
-    *) return 1 ;;
-  esac
+  if "$response" != "y"; then
+    log_fatal "aborted by the user"
+  fi
 }
 
 __deploy(){
   tmp="$(mktemp)"
   apt_get_installed > "$tmp"
 
-  if ! __propose_to_user "$(comm -13 "$tmp" "$1")" "$(comm -23 "$tmp" "$1")"; then
-    log_fatal "aborted by the user"
-  fi
+  __propose_to_user "$(comm -13 "$tmp" "$1")" "$(comm -23 "$tmp" "$1")"
 
   # shellcheck disable=SC2086
   apt_install $added
@@ -60,16 +58,16 @@ commands_rm() {
   packages_close "Remove $*"
 }
 
+commands_versions(){
+  apt-cache madison "$1"
+}
+
 commands_upgrade() {
   apt_upgrade
   packages_close "System upgrade"
 }
 
 commands_rollback() {
-  if test "$#" -ne 1; then
-    log_fatal "arguments not specified"
-  fi
-
   tmp="$(mktemp)"
   git show "$1":packages > "$tmp"
   __deploy "$tmp"
@@ -77,14 +75,8 @@ commands_rollback() {
 
 }
 
-commands_list() {
-  if ! cat "$OSGITPATH"/packages 2> /dev/null; then
-    log_fatal "$OSGITPATH/packages not found"
-  fi
-}
-
 commands_update() {
-  apt_update
+  apt-get -q update
   packages_close "Update"
 }
 
@@ -138,6 +130,7 @@ commands_help() {
   echo "  add/rm - installs/uninstalls packages"
   echo "  clone - sync installed packages with a file"
   echo "  help - shows this"
+  echo "  init - initialises the repository"
   echo "  list - lists installed packages"
   echo "  log - shows osgit commit log"
   echo "  pin/unpin - pins/unpins the currently installed version of a package"
@@ -146,23 +139,24 @@ commands_help() {
   echo "  show - prints information about a specific commit"
   echo "  update - updates cache"
   echo "  upgrade - upgrade the system by installing/upgrading packages"
+  echo "  versions - show versions of a package available in the repositories"
 }
 
 commands_init(){
-  if test ! -d "$OSGITPATH"; then
-    mkdir -p "$OSGITPATH"
+  if test -d "$OSGITPATH"/.git; then
+    log_fatal "already initialised"
   fi
 
-  cd "$OSGITPATH" || log_fatal  "could not cd"
+  mkdir -p "$OSGITPATH"
 
-  if ! touch "$OSGITPATH"/packages; then
-    __check_root
+  if ! -w "$OSGITPATH" || ! -x "$OSGITPATH"; then
+    log_fatal "missing permissions on $OSGITPATH"
   fi
 
-  if test ! -d .git; then
-    git init
-    packages_close "First commit"
-  fi
+  cd "$OSGITPATH"
+  touch "$OSGITPATH"/packages
+  git init
+  packages_close "First commit"
 
   echo 'initialised'
 }
