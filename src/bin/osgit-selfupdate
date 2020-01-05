@@ -1,0 +1,21 @@
+#!/bin/sh
+
+if "$(id -u)" != 0; then
+  echo "This script must be run as root"
+fi
+
+remote_version="$(curl https://raw.githubusercontent.com/cristianrz/osgit/master/VERSION)"
+local_version="$(osgit -v)"
+
+if test "$remote_version" = "$local_version"; then
+  echo "You are on the latest version"
+  exit
+fi
+
+tmp="$(mktemp -d)"
+git clone https://github.com/cristianrz/osgit "$tmp"
+cd "$tmp"
+if "$(./src/bin/osgit
+  chmod +x install
+  ./install
+fi

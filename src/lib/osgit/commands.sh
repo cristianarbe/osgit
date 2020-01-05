@@ -157,6 +157,4 @@ commands_init(){
   touch "$OSGITPATH"/packages
   git init
   packages_close "First commit"
-
-  echo 'initialised'
 }
