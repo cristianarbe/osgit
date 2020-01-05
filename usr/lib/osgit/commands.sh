@@ -22,7 +22,7 @@ __propose_to_user() {
   fi
 
   printf "Do you want to continue? [y/N] "
-  read -r -n 1 response
+  read -r response
 
   if "$response" != "y"; then
     log_fatal "aborted by the user"
@@ -58,12 +58,12 @@ commands_rm() {
   packages_close "Remove $*"
 }
 
-commands_versions(){
-  apt-cache madison "$1"
-}
-
 commands_upgrade() {
-  apt_upgrade
+  apt-get -q update
+
+  apt-get -q -y upgrade ||
+    log_fatal "apt-get upgrade failed"
+
   packages_close "System upgrade"
 }
 

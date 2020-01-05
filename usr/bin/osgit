@@ -61,7 +61,7 @@ main() {
   # shellcheck disable=SC2086
   case "$subcommand" in
     a*) commands_add $args ;;
-    c*) commands_clone "$ORIGIN"/$args ;;
+    c*) commands_clone "$ORIGIN/$args" ;;
     i*) commands_init ;;
     li*) cat "$OSGITPATH"/packages ;;
     lo*) git log --oneline ;;
@@ -73,7 +73,7 @@ main() {
     unp*) commands_unpin $args ;;
     upd*) commands_update $args ;;
     upg*) commands_upgrade $args ;;
-    v*) command_versions $args
+    v*) apt-cache madison $args ;;
     '-v') echo "osgit $VERSION" ;;
     *) log_fatal "$(commands_help "$VERSION")" ;;
   esac

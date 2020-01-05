@@ -6,11 +6,6 @@
 PREFIX="$(cd "$(dirname "$0")"/.. || exit; pwd)"
 OSGITPATH="$PREFIX"/var/cache/osgit
 
-git_add_commit() {
-  git add "$OSGITPATH"/packages -f
-  git commit -m "$1"
-}
-
 git_make_this_master() {
   this="$(git branch | grep -F '*' | sed 's/* //g')"
 
@@ -25,7 +20,3 @@ git_make_this_master() {
   git merge "$this"
 }
 
-git_commit_previous_state() {
-  git checkout -f "$1" -- .
-  git_add_commit "Rollback to $1"
-}

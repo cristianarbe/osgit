@@ -35,10 +35,3 @@ apt_install() {
     log_fatal "apt-get install failed"
   }
 
-apt_upgrade() {
-  apt-get -q update
-
-  apt-get -q -y upgrade ||
-    log_fatal "apt-get upgrade failed"
-  }
-
