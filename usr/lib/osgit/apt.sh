@@ -23,7 +23,7 @@ apt_show_packages() {
     return 1
   fi
 
-  printf "The following packages will be $1:\\n$2\\n"
+  printf ":: The following packages will be $1:\\n$2\\n"
 }
 
 apt_install() {

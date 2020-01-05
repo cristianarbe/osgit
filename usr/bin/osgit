@@ -23,7 +23,7 @@ main() {
   subcommand=
 
   while test "$#" != 0; do
-    if "$1" = "-d"; then
+    if test "$1" = "-d"; then
       set -x
     elif test -z "$subcommand"; then
       subcommand="$1"
@@ -47,14 +47,14 @@ main() {
       fi
 
       git_make_this_master > /dev/null 2>&1
+      ;;
+  esac
 
-      case "$subcommand" in
-        c* | pi* | rev* | ro* | s* | unp*)
-          if test "$#" -ne 1; then
-            log_fatal "incorrect number of arguments"
-          fi
-          ;;
-      esac
+  case "$subcommand" in
+    c* | pi* | rev* | ro* | s* | unp*)
+      if test "$#" -ne 1; then
+        log_fatal "incorrect number of arguments"
+      fi
       ;;
   esac
 
@@ -62,9 +62,10 @@ main() {
   case "$subcommand" in
     a*) commands_add $args ;;
     c*) commands_clone "$ORIGIN/$args" ;;
+    d*) dpkg-query -Wf '${Installed-Size}\t${Package}\n' | sort -n ;;
     i*) commands_init ;;
     li*) cat "$OSGITPATH"/packages ;;
-    lo*) git log --oneline ;;
+    lo*) git --git-dir="$OSGITPATH"/.git log --oneline ;;
     pi*) commands_pin $args ;;
     rev*) commands_revert $args ;;
     rm) commands_rm $args ;;
@@ -73,7 +74,7 @@ main() {
     unp*) commands_unpin $args ;;
     upd*) commands_update $args ;;
     upg*) commands_upgrade $args ;;
-    v*) apt-cache madison $args ;;
+    v*) apt-cache madison $args | sed 's/ | /=/';;
     '-v') echo "osgit $VERSION" ;;
     *) log_fatal "$(commands_help "$VERSION")" ;;
   esac

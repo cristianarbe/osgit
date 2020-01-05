@@ -15,25 +15,24 @@ OSGITPATH="$PREFIX"/var/cache/osgit
 # shellcheck source=../lib/osgit/packages.sh
 . "$PREFIX"/lib/osgit/packages.sh
 
-__propose_to_user() {
-  if ! apt_show_packages "installed" "$1" && ! apt_show_packages "REMOVED" "$2"; then
-    echo 'nothing to do'
-    return
-  fi
-
-  printf "Do you want to continue? [y/N] "
-  read -r response
-
-  if "$response" != "y"; then
-    log_fatal "aborted by the user"
-  fi
-}
-
 __deploy(){
   tmp="$(mktemp)"
   apt_get_installed > "$tmp"
 
-  __propose_to_user "$(comm -13 "$tmp" "$1")" "$(comm -23 "$tmp" "$1")"
+  added="$(comm -13 "$tmp" "$1")"
+  removed="$(comm -23 "$tmp" "$1")"
+
+  if ! apt_show_packages "installed" "$added" && ! apt_show_packages "REMOVED" "$removed"; then
+    echo 'nothing to do'
+    return
+  fi
+
+  printf ":: Do you want to continue? [y/N] "
+  read -r response
+
+  if test "$response" != "y"; then
+    log_fatal "aborted by the user"
+  fi
 
   # shellcheck disable=SC2086
   apt_install $added
@@ -84,13 +83,13 @@ commands_show() {
   tmp="$(mktemp)"
   tmp_prev="$(mktemp)"
 
-  git show "$1":packages > "$tmp"
-  git show "$1"^1:packages > "$tmp_prev"
+  git --git-dir "$OSGITPATH"/.git show "$1":packages > "$tmp"
+  git --git-dir "$OSGITPATH"/.git show "$1"^1:packages > "$tmp_prev"
 
-  echo "* Packages added"
+  echo ":: Packages added"
   comm -13 "$tmp_prev" "$tmp"
 
-  echo "* Packages removed"
+  echo ":: Packages removed"
   comm -23 "$tmp_prev" "$tmp"
 }
 
@@ -129,6 +128,7 @@ commands_help() {
   echo "Commands:"
   echo "  add/rm - installs/uninstalls packages"
   echo "  clone - sync installed packages with a file"
+  echo "  du - summarise disk usage of installed packages"
   echo "  help - shows this"
   echo "  init - initialises the repository"
   echo "  list - lists installed packages"
@@ -149,7 +149,7 @@ commands_init(){
 
   mkdir -p "$OSGITPATH"
 
-  if ! -w "$OSGITPATH" || ! -x "$OSGITPATH"; then
+  if ! test -w "$OSGITPATH" || ! test -x "$OSGITPATH"; then
     log_fatal "missing permissions on $OSGITPATH"
   fi
 
