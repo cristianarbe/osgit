@@ -2,7 +2,7 @@
 # Copyright 2019 Cristian Ariza
 # Licensed under the EUPL
 #
-# Main executable
+# Self updater
 
 set -eu
 
