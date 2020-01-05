@@ -13,7 +13,7 @@ SCRIPT_DIR="$(pwd)"
 
 mkdir -p /usr/local/stow/osgit
 
-cp -vr "$SCRIPT_DIR"/src/* /usr/local/stow/osgit 
+cp -r "$SCRIPT_DIR"/src/* /usr/local/stow/osgit 
 cd /usr/local/stow
 stow osgit
 
@@ -28,4 +28,5 @@ else
   echo 'Checksums of your installed file and this version do not match.'
 fi
 
-echo "If you want to uninstall osgit, just 'rm -rf /usr/local/stow/osgit'"
+echo
+echo "Tip: If you want to uninstall osgit, just 'rm -rf /usr/local/stow/osgit'"

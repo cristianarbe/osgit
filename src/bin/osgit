@@ -6,7 +6,7 @@
 
 set -u
 
-export VERSION="0.5.0"
+export VERSION="0.6.0"
 PREFIX="$(cd "$(dirname "$0")"/.. || exit; pwd)"
 OSGITPATH="$PREFIX"/var/cache/osgit
 ORIGIN="$(pwd)"
