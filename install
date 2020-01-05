@@ -1,4 +1,8 @@
 #!/bin/sh
+# Copyright 2019 Cristian Ariza
+# Licensed under the EUPL
+#
+# Installation script
 
 set -e
 
@@ -11,13 +15,15 @@ SCRIPT_DIR="$(dirname "$0")"
 cd "$SCRIPT_DIR" || exit
 SCRIPT_DIR="$(pwd)"
 
-cp -v "$SCRIPT_DIR"/usr/bin/* /usr/bin/
-mkdir -p /usr/lib/osgit
-cp -v "$SCRIPT_DIR"/usr/lib/osgit/* /usr/lib/osgit/
+mkdir -p /usr/local/stow/osgit
 
-original="$(sha256sum "$SCRIPT_DIR"/usr/bin/osgit | head -c 64)"
+cp -r "$SCRIPT_DIR"/src/* /usr/local/stow/osgit 
+cd /usr/local/stow
+stow osgit
 
-executable_path="/usr/bin/osgit"
+original="$(sha256sum "$SCRIPT_DIR"/src/bin/osgit | head -c 64)"
+
+executable_path="/usr/local/bin/osgit"
 installed="$(sha256sum "$executable_path" | head -c 64)"
 
 if test "$original" = "$installed"; then
@@ -25,3 +31,6 @@ if test "$original" = "$installed"; then
 else
   echo 'Checksums of your installed file and this version do not match.'
 fi
+
+echo
+echo "Tip: If you want to uninstall osgit, just 'rm -rf /usr/local/stow/osgit'"
