@@ -4,18 +4,22 @@ if "$(id -u)" != 0; then
   echo "This script must be run as root"
 fi
 
-remote_version="$(curl https://raw.githubusercontent.com/cristianrz/osgit/master/VERSION)"
-local_version="$(osgit -v)"
+remote_version="$(curl https://raw.githubusercontent.com/cristianrz/osgit/master/VERSION | sed 's/.//g')"
+echo "Remote version is $remote_version"
+local_version="$(osgit -v | sed 's/.//g; s/osgit//g')"
+echo "Local version is $local_version"
 
 if test "$remote_version" = "$local_version"; then
   echo "You are on the latest version"
+  exit
+elif test "$remote_version" -lt "$local_version"; then
+  echo "You must be smarter than the average bear..."
   exit
 fi
 
 tmp="$(mktemp -d)"
 git clone https://github.com/cristianrz/osgit "$tmp"
-cd "$tmp"
-if "$(./src/bin/osgit
-  chmod +x install
-  ./install
-fi
+cd "$tmp" || exit
+
+chmod +x install
+./install

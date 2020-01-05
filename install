@@ -28,4 +28,4 @@ else
   echo 'Checksums of your installed file and this version do not match.'
 fi
 
-echo "To remove osgit, just 'rm -rf /usr/local/stow/osgit'"
+echo "If you want to uninstall osgit, just 'rm -rf /usr/local/stow/osgit'"
