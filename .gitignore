@@ -1,5 +1,5 @@
 .clocignore
-.style-guide.md
 .vscode
 checks
+style-guide.md
 usr/var
