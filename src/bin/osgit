@@ -15,13 +15,15 @@ ORIGIN="$(pwd)"
 . "$PREFIX"/lib/osgit/commands.sh
 # shellcheck source=../lib/osgit/log.sh
 . "$PREFIX"/lib/osgit/log.sh
+# shellcheck source=../lib/osgit/git.sh
+. "$PREFIX"/lib/osgit/git.sh
 
 __make_current_master() {
   # keep the content of this branch, but record a merge
-  git --git-dir="$OSGITPATH"/.git merge --strategy=ours master
-  git --git-dir="$OSGITPATH"/.git checkout master
+  git_path merge --strategy=ours master
+  git_path checkout master
   # fast-forward master up to the merge
-  git --git-dir="$OSGITPATH"/.git merge "$1"
+  git_path merge "$1"
 }
 
 main() {
@@ -48,7 +50,7 @@ main() {
         log_fatal "this command must be executed as root"
       fi
 
-      current_branch="$(git --git-dir="$OSGITPATH"/.git rev-parse --abbrev-ref HEAD)"
+      current_branch="$(git_path rev-parse --abbrev-ref HEAD)"
       if test "$current_branch" != "master"; then
         __make_current_master "$current_branch"
       fi
@@ -66,11 +68,11 @@ main() {
   # shellcheck disable=SC2086
   case "$subcommand" in
     'a'*) commands_add $args ;;
-    'd'*) dpkg-query -Wf '${Installed-Size}\t${Package}\n' | sort -n ;;
+    'du') dpkg-query -Wf '${Installed-Size}\t${Package}\n' | sort -n ;;
     'im'*) commands_import "$ORIGIN/$args" ;;
-    'in'*) commands_init ;;
+    'ini'*) commands_init ;;
     'li'*) cat "$OSGITPATH"/packages ;;
-    'lo'*) git --git-dir="$OSGITPATH"/.git log --oneline ;;
+    'lo'*) git_path log --oneline ;;
     'pi'*) commands_pin $args ;;
     'rev'*) commands_revert $args ;;
     'rm') commands_rm $args ;;

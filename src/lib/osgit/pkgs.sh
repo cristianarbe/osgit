@@ -8,17 +8,19 @@ OSGITPATH="$PREFIX"/var/cache/osgit
 
 # shellcheck source=../lib/osgit/log.sh
 . "$PREFIX"/lib/osgit/log.sh
+# shellcheck source=../lib/osgit/git.sh
+. "$PREFIX"/lib/osgit/git.sh
 
-pkg_get_installed() {
+pkgs_get_installed() {
   dpkg-query -Wf '${Package}=${Version}\n' | sort -n
 }
 
-pkg_close(){
+pkgs_close(){
   if test "$#" -lt 1; then
     log_fatal "message not specified"
   fi
 
-  packages_get_installed >"$OSGITPATH"/packages
-  git --git-dir="$OSGITPATH"/.git add "$OSGITPATH"/packages -f
-  git --git-dir="$OSGITPATH"/.git commit -m "$1" > /dev/null 2>&1
+  pkgs_get_installed >"$OSGITPATH"/packages
+  git_path add packages -f
+  git_path commit -m "$1" > /dev/null 2>&1
 }

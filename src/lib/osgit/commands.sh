@@ -10,6 +10,8 @@ OSGITPATH="$PREFIX"/var/cache/osgit
 . "$PREFIX"/lib/osgit/log.sh
 # shellcheck source=../lib/osgit/pkgs.sh
 . "$PREFIX"/lib/osgit/pkgs.sh
+# shellcheck source=../lib/osgit/git.sh
+. "$PREFIX"/lib/osgit/git.sh
 
 __show_pkgs() {
   if test "$#" -ne 2 || test -z "$2"; then
@@ -74,7 +76,7 @@ commands_upgrade() {
 
 commands_rollback() {
   tmp="$(mktemp)"
-  git --git-dir="$OSGITPATH"/.git show "$1":packages > "$tmp"
+  git_path show "$1":packages > "$tmp"
   __deploy "$tmp"
   pkgs_close "Rollback to $1"
 
@@ -89,13 +91,13 @@ commands_show() {
   tmp="$(mktemp)"
   tmp_prev="$(mktemp)"
 
-  git --git-dir="$OSGITPATH"/.git show "$1":packages > "$tmp"
-  git --git-dir="$OSGITPATH"/.git show "$1"^1:packages > "$tmp_prev"
+  git_path show "$1":packages > "$tmp"
+  git_path show "$1"^1:packages > "$tmp_prev"
 
-  echo ":: Packages added"
+  printf ":: Packages added\\n\\n"
   comm -13 "$tmp_prev" "$tmp"
 
-  echo ":: Packages removed"
+  printf "\\n:: Packages removed\\n\\n"
   comm -23 "$tmp_prev" "$tmp"
 }
 
@@ -110,7 +112,7 @@ commands_pin() {
 }
 
 commands_revert() {
-  git --git-dir="$OSGITPATH"/.git revert --no-commit "$1"
+  git_path revert --no-commit "$1"
   __deploy "$OSGITPATH"/packages
   pkgs_close "Revert to $1"
 }
@@ -160,6 +162,6 @@ commands_init(){
   fi
 
   touch "$OSGITPATH"/packages
-  git --git-dir="$OSGITPATH"/.git init
+  git_path init
   pkgs_close "First commit"
 }
