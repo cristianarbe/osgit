@@ -6,23 +6,27 @@
 PREFIX="$(cd "$(dirname "$0")"/.. || exit; pwd)"
 OSGITPATH="$PREFIX"/var/cache/osgit
 
-# shellcheck source=../lib/osgit/apt.sh
-. "$PREFIX"/lib/osgit/apt.sh
-# shellcheck source=../lib/osgit/git.sh
-. "$PREFIX"/lib/osgit/git.sh
 # shellcheck source=../lib/osgit/log.sh
 . "$PREFIX"/lib/osgit/log.sh
-# shellcheck source=../lib/osgit/packages.sh
-. "$PREFIX"/lib/osgit/packages.sh
+# shellcheck source=../lib/osgit/pkgs.sh
+. "$PREFIX"/lib/osgit/pkgs.sh
+
+__show_pkgs() {
+  if test "$#" -ne 2 || test -z "$2"; then
+    return 1
+  fi
+
+  printf ":: The following packages will be $1:\\n$2\\n"
+}
 
 __deploy(){
   tmp="$(mktemp)"
-  apt_get_installed > "$tmp"
+  pkgs_get_installed > "$tmp"
 
   added="$(comm -13 "$tmp" "$1")"
   removed="$(comm -23 "$tmp" "$1")"
 
-  if ! apt_show_packages "installed" "$added" && ! apt_show_packages "REMOVED" "$removed"; then
+  if ! __show_pkgs "installed" "$added" && ! __show_pkgs "REMOVED" "$removed"; then
     echo 'nothing to do'
     return
   fi
@@ -34,27 +38,29 @@ __deploy(){
     log_fatal "aborted by the user"
   fi
 
+  apt-get update
   # shellcheck disable=SC2086
-  apt_install $added
+  apt-get -q install $added
   # shellcheck disable=SC2086
-  apt_rm $removed
+  apt-get --autoremove -q purge $removed
 }
 
-commands_clone() {
+commands_import() {
   __deploy "$1"
-  packages_close "Clone from $1"
+  pkgs_close "Import from $1"
 }
 
 commands_add() {
+  apt-get update
   # shellcheck disable=SC2068
-  apt_install $@
-  packages_close "Add $*"
+  apt-get -q install $@
+  pkgs_close "Add $*"
 }
 
 commands_rm() {
   # shellcheck disable=SC2068
-  apt_rm $@
-  packages_close "Remove $*"
+  apt-get --autoremove -q purge $@
+  pkgs_close "Remove $*"
 }
 
 commands_upgrade() {
@@ -63,28 +69,28 @@ commands_upgrade() {
   apt-get -q -y upgrade ||
     log_fatal "apt-get upgrade failed"
 
-  packages_close "System upgrade"
+  pkgs_close "System upgrade"
 }
 
 commands_rollback() {
   tmp="$(mktemp)"
-  git show "$1":packages > "$tmp"
+  git --git-dir="$OSGITPATH"/.git show "$1":packages > "$tmp"
   __deploy "$tmp"
-  packages_close "Rollback to $1"
+  pkgs_close "Rollback to $1"
 
 }
 
 commands_update() {
   apt-get -q update
-  packages_close "Update"
+  pkgs_close "Update"
 }
 
 commands_show() {
   tmp="$(mktemp)"
   tmp_prev="$(mktemp)"
 
-  git --git-dir "$OSGITPATH"/.git show "$1":packages > "$tmp"
-  git --git-dir "$OSGITPATH"/.git show "$1"^1:packages > "$tmp_prev"
+  git --git-dir="$OSGITPATH"/.git show "$1":packages > "$tmp"
+  git --git-dir="$OSGITPATH"/.git show "$1"^1:packages > "$tmp_prev"
 
   echo ":: Packages added"
   comm -13 "$tmp_prev" "$tmp"
@@ -104,9 +110,9 @@ commands_pin() {
 }
 
 commands_revert() {
-  git revert --no-commit "$1"
+  git --git-dir="$OSGITPATH"/.git revert --no-commit "$1"
   __deploy "$OSGITPATH"/packages
-  packages_close "Revert to $1"
+  pkgs_close "Revert to $1"
 }
 
 commands_unpin() {
@@ -127,7 +133,7 @@ commands_help() {
   echo ""
   echo "Commands:"
   echo "  add/rm - installs/uninstalls packages"
-  echo "  clone - sync installed packages with a file"
+  echo "  import - sync installed packages with a file"
   echo "  du - summarise disk usage of installed packages"
   echo "  help - shows this"
   echo "  init - initialises the repository"
@@ -149,12 +155,11 @@ commands_init(){
 
   mkdir -p "$OSGITPATH"
 
-  if ! test -w "$OSGITPATH" || ! test -x "$OSGITPATH"; then
-    log_fatal "missing permissions on $OSGITPATH"
+  if ! test -w "$OSGITPATH"; then
+    log_fatal "missing writing permissions on $OSGITPATH"
   fi
 
-  cd "$OSGITPATH"
   touch "$OSGITPATH"/packages
-  git init
-  packages_close "First commit"
+  git --git-dir="$OSGITPATH"/.git init
+  pkgs_close "First commit"
 }
