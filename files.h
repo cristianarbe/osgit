@@ -19,7 +19,7 @@ filecpy(char *dst, char *path, size_t size)
 
 	while (i = fgetc(fp), i != EOF) {
 		char c[2] = { i, '\0' };
-		(void)strlcat(dst, c, sizeof(dst));
+		(void)strlcat(dst, c, size);
 	}
 
 	(void)fclose(fp);
