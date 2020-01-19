@@ -7,6 +7,7 @@
 #include "./commands.h"
 #include "./files.h"
 #include "./pkgs.h"
+#include "./str.h"
 
 /* Types */
 
@@ -24,6 +25,7 @@ struct args {
 static int mkmaster(void);
 static struct args parseargs(int argc, char *argv[]);
 static struct prereqs reqs(char const *subcommand);
+static void help(void);
 
 /* Main */
 
@@ -34,7 +36,7 @@ main(int argc, char *argv[])
 	struct prereqs needs;
 
 	if (argc == 1) {
-		fprintf(stderr, "E: need at least one parameter\n");
+		help();
 		exit(EXIT_FAILURE);
 	}
 
@@ -80,13 +82,13 @@ main(int argc, char *argv[])
 		printf("initing...\n");
 
 	} else if (strcmp(command.subcommand, "list") == 0) {
+		pkgslist();
 	} else if (strcmp(command.subcommand, "log") == 0) {
-		int err = system("/home/cariza/.cache/osgit/ log --oneline");
+		int err = pkgslog();
 		if (err != 0) {
-			fprintf(stderr, "E: error getting log\n");
-			exit(EXIT_FAILURE);
+			fprintf(stderr, "E: failed getting log");
+			return 1;
 		}
-
 	} else if (strcmp(command.subcommand, "pin") == 0) {
 		printf("pining...\n");
 
@@ -94,25 +96,10 @@ main(int argc, char *argv[])
 		printf("reverting...\n");
 
 	} else if (strcmp(command.subcommand, "rm") == 0) {
-		char msg[40] = "";
-		char cmd[100] = "";
-
-		(void)strlcpy(
-		    cmd, "/usr/bin/apt --autoremove purge", sizeof(cmd));
-		(void)strlcat(cmd, command.params, sizeof(cmd));
-
-		int err = system(cmd);
+		int err = pkgsrm(command.params);
 		if (err != 0) {
-			fprintf(stderr, "E: error purging\n");
-			exit(EXIT_FAILURE);
-		}
-
-		(void)strlcpy(msg, "Remove ", sizeof(msg));
-		(void)strlcat(msg, command.params, sizeof(msg));
-		err = pkgsclose(msg);
-		if (err != 0) {
-			fprintf(stderr, "E: error closing pkgs\n");
-			exit(EXIT_FAILURE);
+			fprintf(stderr, "E: failed removing packages");
+			return 1;
 		}
 
 	} else if (strcmp(command.subcommand, "rollback") == 0) {
@@ -132,69 +119,26 @@ main(int argc, char *argv[])
 		}
 
 	} else if (strcmp(command.subcommand, "upgrade") == 0) {
-		int err = system("/usr/bin/apt update");
+		int err = pkgsupgrade();
 		if (err != 0) {
-			fprintf(stderr, "E: error updating\n");
+			fprintf(stderr, "E: failed upgrading packages\n");
 			exit(EXIT_FAILURE);
 		}
-		err = system("/usr/bin/apt upgrade -y");
-		if (err != 0) {
-			fprintf(stderr, "E: error upgrading\n");
-			exit(EXIT_FAILURE);
-		}
-
-	} else if (strcmp(command.subcommand, "version") == 0) {
-		printf("versioning...\n");
+	} else if (strcmp(command.subcommand, "versions") == 0) {
+		printf("versionsing...\n");
 
 	} else if (strcmp(command.subcommand, "-v") == 0) {
 		printf("-ving...\n");
 
 	} else {
-		char msg[200];
-		help(msg);
-		printf("%s", msg);
+		help();
+		exit(EXIT_FAILURE);
 	}
 
 	return 0;
 }
 
 /* Function definitions */
-
-struct prereqs
-reqs(char const *subcommand)
-{
-	struct prereqs result = { 0, 0 };
-
-	if (strcmp(subcommand, "add") == 0) {
-		result.makemaster = 1;
-	} else if (strcmp(subcommand, "import") == 0) {
-		result.makemaster = 1;
-		result.params = 1;
-	} else if (strcmp(subcommand, "pin") == 0) {
-		result.makemaster = 1;
-		result.params = 1;
-	} else if (strcmp(subcommand, "revert") == 0) {
-		result.makemaster = 1;
-		result.params = 1;
-	} else if (strcmp(subcommand, "rm") == 0) {
-		result.makemaster = 1;
-		result.params = 1;
-	} else if (strcmp(subcommand, "rollback") == 0) {
-		result.makemaster = 1;
-		result.params = 1;
-	} else if (strcmp(subcommand, "unpin") == 0) {
-		result.makemaster = 1;
-		result.params = 1;
-	} else if (strcmp(subcommand, "update") == 0) {
-		result.makemaster = 1;
-	} else if (strcmp(subcommand, "upgrade") == 0) {
-		result.makemaster = 1;
-	} else if (strcmp(subcommand, "versions") == 0) {
-		result.params = 1;
-	}
-
-	return result;
-}
 
 static int
 mkmaster(void)
@@ -238,28 +182,86 @@ mkmaster(void)
 static struct args
 parseargs(int argc, char *argv[])
 {
-	struct args command = { 0, "" };
+	struct args command = { "", "" };
 
 	for (int i = 1; i < argc; i = i + 1) {
 		if (strcmp(argv[i], "-d") == 0) {
 			printf("debug active\n");
-		} else {
+		} else if (strcmp(command.subcommand, "") == 0) {
 			command.subcommand = argv[i];
+		} else {
+			char *subargv[argc - i];
 
-			for (int j = i + 1; j < argc; j = j + 1) {
-				if (j - i == 50) {
-					fprintf(stderr,
-					    "E: maximum number of arguments reached (50)");
-					exit(EXIT_FAILURE);
-				}
-
-				(void)strlcat(command.params, argv[j],
-				    sizeof(command.params));
-			}
+			memcpy(subargv, &argv[i], 2 * sizeof(*subargv));
+			strjoin(command.params, subargv, argc - i);
 
 			break;
 		}
 	}
 
 	return command;
+}
+
+struct prereqs
+reqs(char const *subcommand)
+{
+	struct prereqs result = { 0, 0 };
+
+	if (strcmp(subcommand, "add") == 0) {
+		result.makemaster = 1;
+	} else if (strcmp(subcommand, "import") == 0) {
+		result.makemaster = 1;
+		result.params = 1;
+	} else if (strcmp(subcommand, "pin") == 0) {
+		result.makemaster = 1;
+		result.params = 1;
+	} else if (strcmp(subcommand, "revert") == 0) {
+		result.makemaster = 1;
+		result.params = 1;
+	} else if (strcmp(subcommand, "rm") == 0) {
+		result.makemaster = 1;
+		result.params = 1;
+	} else if (strcmp(subcommand, "rollback") == 0) {
+		result.makemaster = 1;
+		result.params = 1;
+	} else if (strcmp(subcommand, "unpin") == 0) {
+		result.makemaster = 1;
+		result.params = 1;
+	} else if (strcmp(subcommand, "update") == 0) {
+		result.makemaster = 1;
+	} else if (strcmp(subcommand, "upgrade") == 0) {
+		result.makemaster = 1;
+	} else if (strcmp(subcommand, "versions") == 0) {
+		result.params = 1;
+	}
+
+	return result;
+}
+
+void
+help(void)
+{
+	fprintf(stderr,
+	    "osgit v1.0.0\n"
+	    "Usage: osgit [options] command\n"
+	    "\n"
+	    "osgit is a command line apt-wrapper and provides commands for\n"
+	    "searching and managing as well as version control installed "
+	    "packages.\n"
+	    "\n"
+	    "Commands:\n"
+	    "	add/rm - installs/uninstalls packages\n"
+	    "	import - sync installed packages with a file\n"
+	    "	du - summarise disk usage of installed packages\n"
+	    "	help - shows this\n"
+	    "	init - initialises the repository\n"
+	    "	list - lists installed packages\n"
+	    "	log - shows osgit commit log\n"
+	    "	pin/unpin - pins/unpins the currently installed version of a package\n"
+	    "	revert - reverts a specific commit\n"
+	    "	rollback - change the installed packages to a specific commit\n"
+	    "	show - prints information about a specific commit\n"
+	    "	update - updates cache\n"
+	    "	upgrade - upgrade the system by installing/upgrading packages\n"
+	    "	versions - show versions of a package available in the repositories\n");
 }
