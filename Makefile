@@ -3,5 +3,5 @@ FLAGS = -fsanitize=signed-integer-overflow -fsanitize=undefined -ggdb3 -O0 \
 	-Wpointer-arith -Wbad-function-cast -Wno-unused-variable -Wshadow 
 LIBS = -lcrypt -lbsd -lm
 
-osgit: osgit.c
+osgit: osgit.c commands.h files.h pkgs.h str.h
 	clang $(FLAGS) osgit.c $(LIBS) -o osgit
