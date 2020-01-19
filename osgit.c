@@ -209,7 +209,7 @@ mkmaster(void)
 		return 1;
 	}
 
-	if (strcmp(currentbranch,"") == 0) {
+	if (strcmp(currentbranch, "") == 0) {
 		fprintf(stderr, "E: can't find current branch");
 		exit(EXIT_FAILURE);
 	}
@@ -253,7 +253,8 @@ parseargs(int argc, char *argv[])
 					exit(EXIT_FAILURE);
 				}
 
-				(void)strlcat(command.params, argv[j], sizeof(command.params));
+				(void)strlcat(command.params, argv[j],
+				    sizeof(command.params));
 			}
 
 			break;
