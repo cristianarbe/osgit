@@ -139,7 +139,7 @@ pkgslist()
 		c = fgetc(fptr);
 	}
 
-	fclose(fptr);
+	(void)fclose(fptr);
 	return 0;
 }
 
