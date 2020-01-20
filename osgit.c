@@ -16,8 +16,7 @@ struct prereqs {
 };
 
 struct args {
-	char *subcommand;
-	char params[100];
+	char *subcommand, params[100];
 };
 
 /* Function declarations */
@@ -75,12 +74,6 @@ main(int argc, char *argv[])
 			fprintf(stderr, "E: failed getting packages usage");
 			exit(EXIT_FAILURE);
 		}
-	} else if (strcmp(command.subcommand, "import") == 0) {
-		printf("importing...\n");
-
-	} else if (strcmp(command.subcommand, "init") == 0) {
-		printf("initing...\n");
-
 	} else if (strcmp(command.subcommand, "list") == 0) {
 		pkgslist();
 	} else if (strcmp(command.subcommand, "log") == 0) {
@@ -89,28 +82,12 @@ main(int argc, char *argv[])
 			fprintf(stderr, "E: failed getting log");
 			return 1;
 		}
-	} else if (strcmp(command.subcommand, "pin") == 0) {
-		printf("pining...\n");
-
-	} else if (strcmp(command.subcommand, "revert") == 0) {
-		printf("reverting...\n");
-
 	} else if (strcmp(command.subcommand, "rm") == 0) {
 		int err = pkgsrm(command.params);
 		if (err != 0) {
 			fprintf(stderr, "E: failed removing packages");
 			return 1;
 		}
-
-	} else if (strcmp(command.subcommand, "rollback") == 0) {
-		printf("rollbacking...\n");
-
-	} else if (strcmp(command.subcommand, "show") == 0) {
-		printf("showing...\n");
-
-	} else if (strcmp(command.subcommand, "unpin") == 0) {
-		printf("unpining...\n");
-
 	} else if (strcmp(command.subcommand, "update") == 0) {
 		int err = system("/usr/bin/apt update");
 		if (err != 0) {
@@ -124,12 +101,6 @@ main(int argc, char *argv[])
 			fprintf(stderr, "E: failed upgrading packages\n");
 			exit(EXIT_FAILURE);
 		}
-	} else if (strcmp(command.subcommand, "versions") == 0) {
-		printf("versionsing...\n");
-
-	} else if (strcmp(command.subcommand, "-v") == 0) {
-		printf("-ving...\n");
-
 	} else {
 		help();
 		exit(EXIT_FAILURE);
@@ -251,17 +222,11 @@ help(void)
 	    "\n"
 	    "Commands:\n"
 	    "	add/rm - installs/uninstalls packages\n"
-	    "	import - sync installed packages with a file\n"
 	    "	du - summarise disk usage of installed packages\n"
 	    "	help - shows this\n"
-	    "	init - initialises the repository\n"
 	    "	list - lists installed packages\n"
 	    "	log - shows osgit commit log\n"
-	    "	pin/unpin - pins/unpins the currently installed version of a package\n"
 	    "	revert - reverts a specific commit\n"
-	    "	rollback - change the installed packages to a specific commit\n"
-	    "	show - prints information about a specific commit\n"
 	    "	update - updates cache\n"
-	    "	upgrade - upgrade the system by installing/upgrading packages\n"
-	    "	versions - show versions of a package available in the repositories\n");
+	    "	upgrade - upgrade the system by installing/upgrading packages\n");
 }
