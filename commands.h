@@ -18,7 +18,7 @@ deploy(char *path)
 	}
 
 	(void)strlcpy(cmd,
-	    "apt-get -q install \"$(comm -13 /home/cariza/.cache/osgit/packages \"",
+	    "apt-get -q install \"$(comm -13 /home/cariza/.cache/vpk/packages \"",
 	    sizeof(cmd));
 	(void)strlcat(cmd, path, sizeof(cmd));
 	(void)strlcat(cmd, "\"", sizeof(cmd));
@@ -28,7 +28,7 @@ deploy(char *path)
 	}
 
 	(void)strlcpy(cmd,
-	    "apt-get -q --autoremove purge \"$(comm -23 /home/cariza/.cache/osgit/packages \"",
+	    "apt-get -q --autoremove purge \"$(comm -23 /home/cariza/.cache/vpk/packages \"",
 	    sizeof(cmd));
 	(void)strlcat(cmd, path, sizeof(cmd));
 	(void)strlcat(cmd, "\"", sizeof(cmd));

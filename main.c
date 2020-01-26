@@ -117,7 +117,7 @@ mkmaster(void)
 	char currentbranch[20] = "";
 	char cmd[100] = "";
 
-	int err = filecpy(currentbranch, "/home/cariza/.cache/osgit/.git/HEAD",
+	int err = filecpy(currentbranch, "/home/cariza/.cache/vpk/.git/HEAD",
 	    sizeof(currentbranch));
 	if (err != 0) {
 		fprintf(stderr, "E: failed reading file contents");
@@ -131,15 +131,15 @@ mkmaster(void)
 
 	if (strstr(currentbranch, "master") == NULL) {
 		err = system(
-		    "git --git-dir=/home/cariza/.cache/osgit/.git "
-		    "--work-tree=/home/cariza/.cache/osgit/ checkout master");
+		    "git --git-dir=/home/cariza/.cache/vpk/.git "
+		    "--work-tree=/home/cariza/.cache/vpk/ checkout master");
 		if (err != 0) {
 			return 1;
 		}
 
 		(void)strlcpy(cmd,
-		    "git --git-dir=/home/cariza/.cache/osgit/.git "
-		    "--work-tree=/home/cariza/.cache/osgit/ reset --hard",
+		    "git --git-dir=/home/cariza/.cache/vpk/.git "
+		    "--work-tree=/home/cariza/.cache/vpk/ reset --hard",
 		    sizeof(cmd));
 		err = system(cmd);
 		if (err != 0) {
@@ -213,10 +213,10 @@ void
 help(void)
 {
 	fprintf(stderr,
-	    "osgit v1.0.0\n"
-	    "Usage: osgit [options] command\n"
+	    "vpk v1.0.0\n"
+	    "Usage: vpk [options] command\n"
 	    "\n"
-	    "osgit is a command line apt-wrapper and provides commands for\n"
+	    "vpk is a command line apt-wrapper and provides commands for\n"
 	    "searching and managing as well as version control installed "
 	    "packages.\n"
 	    "\n"
@@ -225,7 +225,7 @@ help(void)
 	    "	du - summarise disk usage of installed packages\n"
 	    "	help - shows this\n"
 	    "	list - lists installed packages\n"
-	    "	log - shows osgit commit log\n"
+	    "	log - shows vpk commit log\n"
 	    "	revert - reverts a specific commit\n"
 	    "	update - updates cache\n"
 	    "	upgrade - upgrade the system by installing/upgrading packages\n");

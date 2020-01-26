@@ -13,14 +13,14 @@ pkgsclose(char *msg)
 	char cmd[200] = "";
 
 	int err = system("dpkg-query -Wf '${Package}=${Version}\n' | sort -n > "
-			 "/home/cariza/.cache/osgit/packages");
+			 "/home/cariza/.cache/vpk/packages");
 	if (err != 0) {
 		fprintf(stderr, "E: failed updating packages");
 		return 1;
 	}
 
 	int alldone = system(
-	    "git --git-dir=/home/cariza/.cache/osgit/.git --work-tree=/home/cariza/.cache/osgit diff-index --quiet HEAD --");
+	    "git --git-dir=/home/cariza/.cache/vpk/.git --work-tree=/home/cariza/.cache/vpk diff-index --quiet HEAD --");
 
 	printf("alldone is %i\n", alldone);
 
@@ -28,16 +28,16 @@ pkgsclose(char *msg)
 		return 0;
 	}
 
-	err = system("git --git-dir=/home/cariza/.cache/osgit/.git "
-		     "--work-tree=/home/cariza/.cache/osgit add packages -f");
+	err = system("git --git-dir=/home/cariza/.cache/vpk/.git "
+		     "--work-tree=/home/cariza/.cache/vpk add packages -f");
 	if (err != 0) {
 		fprintf(stderr, "adding packages file to stash");
 		return 1;
 	}
 
 	(void)strlcpy(cmd,
-	    "git --git-dir=/home/cariza/.cache/osgit/.git "
-	    "--work-tree=/home/cariza/.cache/osgit commit -m \"",
+	    "git --git-dir=/home/cariza/.cache/vpk/.git "
+	    "--work-tree=/home/cariza/.cache/vpk commit -m \"",
 	    sizeof(cmd));
 	(void)strlcat(cmd, msg, sizeof(cmd));
 	(void)strlcat(cmd, "\" > /dev/null 2>&1", sizeof(cmd));
@@ -127,7 +127,7 @@ pkgslist()
 	char c;
 
 	// Open file
-	fptr = fopen("/home/cariza/.cache/osgit/packages", "r");
+	fptr = fopen("/home/cariza/.cache/vpk/packages", "r");
 	if (fptr == NULL) {
 		fprintf(stderr, "E: cannot open file \n");
 		return 1;
@@ -147,7 +147,7 @@ int
 pkgslog()
 {
 	int err = system(
-	    "git --git-dir=/home/cariza/.cache/osgit/.git --work-tree=/home/cariza/.cache/osgit/ log --oneline");
+	    "git --git-dir=/home/cariza/.cache/vpk/.git --work-tree=/home/cariza/.cache/vpk/ log --oneline");
 	if (err != 0) {
 		fprintf(stderr, "E: error getting log\n");
 		return 1;

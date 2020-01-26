@@ -1,19 +1,19 @@
-# osgit
+# vpk
 
-osgit is a wrapper for apt-get that adds the capability of managing the list of installed packages as a git repository.
+vpk is a wrapper for apt-get that adds the capability of managing the list of installed packages as a git repository.
 
 ## Installation
 
 1. Download the latest version,
 
 ```
-$ git clone https://github.com/cristianarbe/osgit.git
+$ git clone https://github.com/cristianarbe/vpk.git
 ```
 
 2. install it
 
 ```
-$ cd osgit
+$ cd vpk
 $ sh install
 ```
 
@@ -27,7 +27,7 @@ $ sh install
 
 ## Contributing
 
-Suggestions/improvements [welcome](https://github.com/cristianarbe/osgit/issues)!
+Suggestions/improvements [welcome](https://github.com/cristianarbe/vpk/issues)!
 
 # Credits
 

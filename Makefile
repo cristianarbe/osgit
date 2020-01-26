@@ -3,23 +3,23 @@ include config.mk
 LIBS = -lcrypt -lbsd -lm
 OBJ = main.c commands.h files.h pkgs.h str.h
 
-all: vpm
+all: vpk
 
-vpm: $(OBJ)
-	$(CC) $(CFLAGS) main.c $(LIBS) -o vpm
+vpk: $(OBJ)
+	$(CC) $(CFLAGS) main.c $(LIBS) -o vpk
 
 clean:
-	rm -f vpm vpm-$(VERSION).tar.gz main
+	rm -f vpk vpk-$(VERSION).tar.gz main
 
 dist: clean
-	mkdir -p vpm-$(VERSION)
-	cp -R LICENSE Makefile config.mk $(OBJ) vpm-$(VERSION)
-	tar -czf vpm-$(VERSION).tar.gz vpm-$(VERSION)
-	rm -rf vpm-$(VERSION)
+	mkdir -p vpk-$(VERSION)
+	cp -R LICENSE Makefile config.mk $(OBJ) vpk-$(VERSION)
+	tar -czf vpk-$(VERSION).tar.gz vpk-$(VERSION)
+	rm -rf vpk-$(VERSION)
 
 install: all
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
-	cp -f vpm $(DESTDIR)$(PREFIX)/bin
-	chmod 755 $(DESTDIR)$(PREFIX)/bin/vpm
+	cp -f vpk $(DESTDIR)$(PREFIX)/bin
+	chmod 755 $(DESTDIR)$(PREFIX)/bin/vpk
 
-.PHONY: all vpm clean dist
+.PHONY: all vpk clean dist
