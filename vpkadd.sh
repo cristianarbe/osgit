@@ -3,7 +3,7 @@
 set -eu
 
 dpkg-query -Wf '${Package}=${Version}\n' | sort >/var/cache/vpk/packages
-git commit -a -m "Sync" >/dev/null 2>&1 || true
+git --git-dir /var/cache/vpk/.git --work-tree=/var/cache/vpk commit -a -m "Sync" >/dev/null 2>&1 || true
 
 apt-get -q update
 
@@ -13,7 +13,7 @@ case "$1" in
 		shift
 
 		tmp="$(mktemp)"
-		git show "$1":packages > "$tmp"
+		git --git-dir /var/cache/vpk/.git --work-tree=/var/cache/vpk show "$1":packages > "$tmp"
 
 		# shellcheck disable=SC2046
 		apt-get -q install $(comm -13 /var/cache/vpk/packages "$tmp")
@@ -39,4 +39,4 @@ case "$1" in
 esac
 
 dpkg-query -Wf '${Package}=${Version}\n' | sort >/var/cache/vpk/packages
-git commit -a -m "$msg" >/dev/null 2>&1
+git --git-dir /var/cache/vpk/.git --work-tree=/var/cache/vpk commit -a -m "$msg" >/dev/null 2>&1
