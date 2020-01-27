@@ -25,7 +25,7 @@ vpkpin: vpkpin.sh
 	chmod +x vpkpin
 
 clean:
-	rm -f vpkadd vpkinfo vpkinit vpkrm
+	rm -f vpkadd vpkrm vpkinfo vpkinit vpkpin
 
 dist: clean
 	mkdir -p vpk-$(VERSION)

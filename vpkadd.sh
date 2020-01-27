@@ -2,7 +2,7 @@
 
 set -eu
 
-dpkg-query -Wf '${Package}=${Version}\n' | sort >"$VPKPATH"/packages
+dpkg-query -Wf '${Package}=${Version}\n' | sort >/var/cache/vpk/packages
 git commit -a -m "Sync" >/dev/null 2>&1
 
 apt-get -q update
@@ -15,8 +15,8 @@ case "$1" in
 		tmp="$(mktemp)"
 		git show "$1":packages > "$tmp"
 
-		apt-get -q install $(comm -13 "$VPKPATH"/packages "$tmp")
-		apt-get -q autoremove $(comm -23 "$VPKPATH"/packages "$tmp")
+		apt-get -q install $(comm -13 /var/cache/vpk/packages "$tmp")
+		apt-get -q autoremove $(comm -23 /var/cache/vpk/packages "$tmp")
 
 		msg="Rollback to $2"
 		;;
@@ -34,5 +34,5 @@ case "$1" in
 		;;
 esac
 
-dpkg-query -Wf '${Package}=${Version}\n' | sort >"$VPKPATH"/packages
+dpkg-query -Wf '${Package}=${Version}\n' | sort >/var/cache/vpk/packages
 git commit -a -m "Rollback to $2" >/dev/null 2>&1
