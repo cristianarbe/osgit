@@ -1,4 +1,5 @@
 #!/bin/sh
+# Copyright 2020 Cristian Ariza. All rights reserved.
 
 set -eu
 
@@ -15,6 +16,6 @@ shift
 case "$option" in
 	"-c") git --git-dir /var/cache/vpk/.git show $* ;;
 	"-d") dpkg-query -Wf '${Installed-Size}\t${Package}\n' | sort -n ;;
-	"-g") git --git-dir=/var/cache/vpk/.git log --oneline ;;
+	"-l") git --git-dir=/var/cache/vpk/.git log --oneline ;;
 	"-v") apt-cache madison $* | sed 's/ | /=/' ;;
 esac
