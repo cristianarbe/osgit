@@ -3,7 +3,7 @@
 set -eu
 
 dpkg-query -Wf '${Package}=${Version}\n' | sort >/var/cache/vpk/packages
-git commit -a -m "Sync" >/dev/null 2>&1
+git commit -a -m "Sync" >/dev/null 2>&1 || true
 
 apt-get -q update
 
