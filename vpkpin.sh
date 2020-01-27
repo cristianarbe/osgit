@@ -1,4 +1,5 @@
 #!/bin/sh
+# Copyright 2020 Cristian Ariza. All rights reserved.
 
 case "$1" in
 	"-d")
