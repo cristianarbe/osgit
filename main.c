@@ -4,9 +4,9 @@
 
 #include <bsd/string.h>
 
-#include "./commands.h"
+#include "./vpk.h"
 #include "./files.h"
-#include "./pkgs.h"
+#include "./vpk.h"
 #include "./str.h"
 
 /* Types */
@@ -51,7 +51,7 @@ main(int argc, char *argv[])
 	if (needs.makemaster != 0) {
 		int err = mkmaster();
 		if (err != 0) {
-			fprintf(stderr, "E: failed making master");
+			fprintf(stderr, "E: failed making master\n");
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -62,41 +62,55 @@ main(int argc, char *argv[])
 	}
 
 	if (strcmp(command.subcommand, "add") == 0) {
-		int err = pkgsadd(command.params);
+		int err = vpkadd(command.params);
 		if (err != 0) {
 			fprintf(stderr, "E: failed adding packages\n");
 			exit(EXIT_FAILURE);
 		}
-
 	} else if (strcmp(command.subcommand, "du") == 0) {
-		int err = pkgsdu();
+		int err = vpkdu();
 		if (err != 0) {
 			fprintf(stderr, "E: failed getting packages usage");
 			exit(EXIT_FAILURE);
 		}
-	} else if (strcmp(command.subcommand, "list") == 0) {
-		pkgslist();
-	} else if (strcmp(command.subcommand, "log") == 0) {
-		int err = pkgslog();
+	} else if (strcmp(command.subcommand, "init") == 0) {
+		int err = vpkinit();
 		if (err != 0) {
-			fprintf(stderr, "E: failed getting log");
+			fprintf(stderr, "E: failed initialising\n");
+			exit(EXIT_FAILURE);
+		}
+	} else if (strcmp(command.subcommand, "list") == 0) {
+		int err = vpklist();
+		if (err != 0) {
+			fprintf(stderr, "E: failed getting log\n");
+			exit(EXIT_FAILURE);
+		}
+	} else if (strcmp(command.subcommand, "log") == 0) {
+		int err = vpklog();
+		if (err != 0) {
+			fprintf(stderr, "E: failed getting log\n");
+			exit(EXIT_FAILURE);
+		}
+	} else if (strcmp(command.subcommand, "revert") == 0) {
+		int err = vpkrev(command.params);
+		if (err != 0) {
+			fprintf(stderr, "E: failed removing packages\n");
 			return 1;
 		}
 	} else if (strcmp(command.subcommand, "rm") == 0) {
-		int err = pkgsrm(command.params);
+		int err = vpkrm(command.params);
 		if (err != 0) {
-			fprintf(stderr, "E: failed removing packages");
+			fprintf(stderr, "E: failed removing packages\n");
 			return 1;
 		}
 	} else if (strcmp(command.subcommand, "update") == 0) {
-		int err = system("/usr/bin/apt update");
+		int err = vpkupdate();
 		if (err != 0) {
-			fprintf(stderr, "E: error updating\n");
+			fprintf(stderr, "E: failed updating packages\n");
 			exit(EXIT_FAILURE);
 		}
-
 	} else if (strcmp(command.subcommand, "upgrade") == 0) {
-		int err = pkgsupgrade();
+		int err = vpkupgrade();
 		if (err != 0) {
 			fprintf(stderr, "E: failed upgrading packages\n");
 			exit(EXIT_FAILURE);
@@ -120,7 +134,7 @@ mkmaster(void)
 	int err = filecpy(currentbranch, "/home/cariza/.cache/vpk/.git/HEAD",
 	    sizeof(currentbranch));
 	if (err != 0) {
-		fprintf(stderr, "E: failed reading file contents");
+		fprintf(stderr, "E: failed reading file contents\n");
 		return 1;
 	}
 
@@ -213,7 +227,7 @@ void
 help(void)
 {
 	fprintf(stderr,
-	    "vpk v1.0.0\n"
+	    "vpk v0.7.0\n"
 	    "Usage: vpk [options] command\n"
 	    "\n"
 	    "vpk is a command line apt-wrapper and provides commands for\n"
