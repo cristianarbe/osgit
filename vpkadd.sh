@@ -15,7 +15,9 @@ case "$1" in
 		tmp="$(mktemp)"
 		git show "$1":packages > "$tmp"
 
+		# shellcheck disable=SC2046
 		apt-get -q install $(comm -13 /var/cache/vpk/packages "$tmp")
+		# shellcheck disable=SC2046
 		apt-get -q autoremove $(comm -23 /var/cache/vpk/packages "$tmp")
 
 		msg="Rollback to $2"
@@ -28,6 +30,8 @@ case "$1" in
 		;;
 	*)
 		# Install
+		# shellcheck disable=SC2086
+		# shellcheck disable=SC2048
 		apt-get -q install $*
 
 		msg="Add $*"
@@ -35,4 +39,4 @@ case "$1" in
 esac
 
 dpkg-query -Wf '${Package}=${Version}\n' | sort >/var/cache/vpk/packages
-git commit -a -m "Rollback to $2" >/dev/null 2>&1
+git commit -a -m "$msg" >/dev/null 2>&1
