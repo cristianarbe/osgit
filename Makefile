@@ -25,7 +25,7 @@ clean:
 
 dist: clean
 	mkdir -p vpk-$(VERSION)
-	cp -R LICENSE Makefile config.mk $(OBJ) vpk-$(VERSION)
+	cp -R LICENSE config.mk Makefile README.md vpkadd.sh vpkinfo.sh vpkinit.sh vpmrk.sh vpk-$(VERSION) 
 	tar -czf vpk-$(VERSION).tar.gz vpk-$(VERSION)
 	rm -rf vpk-$(VERSION)
 
