@@ -1,7 +1,7 @@
 include config.mk
 
 LIBS = -lcrypt -lbsd -lm
-OBJ = main.c commands.h files.h pkgs.h str.h
+OBJ = main.c vpk.h files.h vpk.h str.h
 
 all: vpk
 
