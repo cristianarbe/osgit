@@ -3,7 +3,7 @@
 set -eu
 
 dpkg-query -Wf '${Package}=${Version}\n' | sort >/var/cache/vpk/packages
-git commit -a -m "Sync" >/dev/null 2>&1 || true
+git --git-dir /var/cache/vpk/.git --work-tree=/var/cache/vpk commit -a -m "Sync" >/dev/null 2>&1 || true
 
 case "$1" in
   "-c")
@@ -20,13 +20,13 @@ case "$1" in
     apt-get -q autoremove $(comm -23 "$tmp" "$1" "$VKPATH"/packages)
 
     dpkg-query -Wf '${Package}=${Version}\n' | sort > /var/cache/vpk/packages
-    git commit -a -m "Revert $*" > /dev/null 2>&1
+    git --git-dir /var/cache/vpk/.git --work-tree=/var/cache/vpk commit -a -m "Revert $*" > /dev/null 2>&1
     ;;
   *)
     # shellcheck disable=SC2086
     # shellcheck disable=SC2048
     apt-get -q --autoremove purge $*
     dpkg-query -Wf '${Package}=${Version}\n' | sort > /var/cache/vpk/packages
-    git commit -a -m "Remove $*"
+    git --git-dir /var/cache/vpk/.git --work-tree=/var/cache/vpk commit -a -m "Remove $*"
     ;;
 esac
