@@ -27,6 +27,6 @@ case "$1" in
     # shellcheck disable=SC2048
     apt-get -q --autoremove purge $*
     dpkg-query -Wf '${Package}=${Version}\n' | sort > /var/cache/vpk/packages
-    git commit -a -m "Remove $*" > /dev/null 2>&1
+    git commit -a -m "Remove $*"
     ;;
 esac
