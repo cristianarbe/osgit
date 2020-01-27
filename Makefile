@@ -1,15 +1,27 @@
 include config.mk
 
-LIBS = -lcrypt -lbsd -lm
 OBJ = main.c vpk.h files.h vpk.h str.h
 
-all: vpk
+all: vpkadd vpkrm vpkinfo vpkinit
 
-vpk: $(OBJ)
-	$(CC) $(CFLAGS) main.c $(LIBS) -o vpk
+vpkadd: vpkadd.sh
+	$(CC) $(CFLAGS) vpkadd.sh > vpkadd
+	chmod +x vpkadd
+
+vpkrm: vpkrm.sh
+	$(CC) $(CFLAGS) vpkrm.sh > vpkadd
+	chmod +x vpkadd
+
+vpkinfo: vpkinfo.sh
+	$(CC) $(CFLAGS) vpkinfo.sh > vpkinfo
+	chmod +x vpkinfo
+
+vpkinit: vpkinit.sh
+	$(CC) $(CFLAGS) vpkinit.sh > vpkinit
+	chmod +x vpkinit
 
 clean:
-	rm -f vpk vpk-$(VERSION).tar.gz main
+	rm -f vpkadd vpkinfo vpkinit vpkrm
 
 dist: clean
 	mkdir -p vpk-$(VERSION)
