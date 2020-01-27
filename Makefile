@@ -2,15 +2,15 @@ include config.mk
 
 OBJ = main.c vpk.h files.h vpk.h str.h
 
-all: vpkadd vpkrm vpkinfo vpkinit
+all: vpkadd vpkrm vpkinfo vpkinit vpkpin
 
 vpkadd: vpkadd.sh
 	$(CC) $(CFLAGS) vpkadd.sh > vpkadd
 	chmod +x vpkadd
 
 vpkrm: vpkrm.sh
-	$(CC) $(CFLAGS) vpkrm.sh > vpkadd
-	chmod +x vpkadd
+	$(CC) $(CFLAGS) vpkrm.sh > vpkrm
+	chmod +x vpkrm
 
 vpkinfo: vpkinfo.sh
 	$(CC) $(CFLAGS) vpkinfo.sh > vpkinfo
@@ -19,6 +19,10 @@ vpkinfo: vpkinfo.sh
 vpkinit: vpkinit.sh
 	$(CC) $(CFLAGS) vpkinit.sh > vpkinit
 	chmod +x vpkinit
+
+vpkpin: vpkpin.sh
+	$(CC) $(CFLAGS) vpkpin.sh > vpkpin
+	chmod +x vpkpin
 
 clean:
 	rm -f vpkadd vpkinfo vpkinit vpkrm
@@ -31,7 +35,15 @@ dist: clean
 
 install: all
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
-	cp -f vpk $(DESTDIR)$(PREFIX)/bin
-	chmod 755 $(DESTDIR)$(PREFIX)/bin/vpk
+	cp -f vpkadd $(DESTDIR)$(PREFIX)/bin
+	chmod 755 $(DESTDIR)$(PREFIX)/bin/vpkadd
+	cp -f vpkinfo $(DESTDIR)$(PREFIX)/bin
+	chmod 755 $(DESTDIR)$(PREFIX)/bin/vpkinfo
+	cp -f vpkinit $(DESTDIR)$(PREFIX)/bin
+	chmod 755 $(DESTDIR)$(PREFIX)/bin/vpkinit
+	cp -f vpkpin $(DESTDIR)$(PREFIX)/bin
+	chmod 755 $(DESTDIR)$(PREFIX)/bin/vpkpin
+	cp -f vpkrm $(DESTDIR)$(PREFIX)/bin
+	chmod 755 $(DESTDIR)$(PREFIX)/bin/vpkrm
 
 .PHONY: all vpk clean dist
