@@ -5,20 +5,23 @@ OBJ = main.c vpk.h files.h vpk.h str.h
 all: vpkadd vpkrm vpknfo vpkpin
 
 vpkadd: vpkadd.sh
-	$(CC) $(CFLAGS) vpkadd.sh > vpkadd
+	$(SC) $(SFLAGS) vpkadd.sh > vpkadd
 	chmod +x vpkadd
 
 vpkrm: vpkrm.sh
-	$(CC) $(CFLAGS) vpkrm.sh > vpkrm
+	$(SC) $(SFLAGS) vpkrm.sh > vpkrm
 	chmod +x vpkrm
 
 vpknfo: vpknfo.sh
-	$(CC) $(CFLAGS) vpknfo.sh > vpknfo
+	$(SC) $(SFLAGS) vpknfo.sh > vpknfo
 	chmod +x vpknfo
 
 vpkpin: vpkpin.sh
-	$(CC) $(CFLAGS) vpkpin.sh > vpkpin
+	$(SC) $(SFLAGS) vpkpin.sh > vpkpin
 	chmod +x vpkpin
+
+vpk: vpk-cli.c vpk-cli.h
+	$(CC) $(CGLAGS) -o vpk vpk-cli.c -lbsd
 
 clean:
 	rm -f vpkadd vpkrm vpknfo vpkpin
