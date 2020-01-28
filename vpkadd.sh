@@ -6,6 +6,8 @@ set -eu
 if test ! -d /var/cache/vpk/.git; then
 	mkdir -p /var/cache/vpk
 	git --git-dir /var/cache/vpk/.git --work-tree=/var/cache/vpk init
+	git --git-dir /var/cache/vpk/.git --work-tree=/var/cache/vpk add packages -f
+	git --git-dir /var/cache/vpk/.git --work-tree=/var/cache/vpk commit -m "First commit"
 fi
 
 dpkg-query -Wf '${Package}=${Version}\n' | sort > /var/cache/vpk/packages
