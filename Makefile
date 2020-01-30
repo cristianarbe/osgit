@@ -4,9 +4,8 @@ OBJ = main.c vpk.h files.h vpk.h str.h
 
 all: vpkadd vpkrm vpknfo vpkpin
 
-vpkadd: vpkadd.sh
-	$(SC) $(SFLAGS) vpkadd.sh > vpkadd
-	chmod +x vpkadd
+vpkadd: vpkadd.c vpkadd.h
+	$(CC) $(CFLAGS) -o vpkadd $(CLIBS) vpkadd.c
 
 vpkrm: vpkrm.sh
 	$(SC) $(SFLAGS) vpkrm.sh > vpkrm
