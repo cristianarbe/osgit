@@ -23,7 +23,7 @@ vpk: vpk-cli.c vpk-cli.h
 	$(CC) $(CGLAGS) -o vpk vpk-cli.c -lbsd
 
 clean:
-	rm -f vpkadd vpkrm vpknfo vpkpin
+	rm -f vpkadd vpkrm vpknfo vpkpin vpk-cli
 
 dist: clean
 	mkdir -p vpk-$(VERSION)
