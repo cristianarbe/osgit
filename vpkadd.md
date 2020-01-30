@@ -1,5 +1,7 @@
 % VPK_ADD(1)
 
+<!-- TODO(0): Complete man page -->
+
 # NAME
 
 **vpk_add** - install or update software packages
