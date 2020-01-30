@@ -1,3 +1,5 @@
 .vscode/launch.json
 vpk
 test.log
+vpkadd.sh
+vpkpin.sh
