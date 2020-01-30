@@ -4,7 +4,7 @@ OBJ = main.c vpk.h files.h vpk.h str.h
 
 all: vpkadd vpkrm vpknfo vpkpin
 
-vpkadd: vpkadd.c vpkadd.h
+vpkadd: vpkadd.c vpkadd.h vpkadd.1
 	$(CC) $(CFLAGS) -o vpkadd $(CLIBS) vpkadd.c
 
 vpkrm: vpkrm.sh
@@ -22,8 +22,11 @@ vpkpin: vpkpin.sh
 vpk: vpk-cli.c vpk-cli.h
 	$(CC) $(CGLAGS) -o vpk vpk-cli.c -lbsd
 
+vpkadd.1: vpkadd.md
+	pandoc -s -t man vpkadd.md -o vpkadd.1
+
 clean:
-	rm -f vpkadd vpkrm vpknfo vpkpin vpk-cli
+	rm -f vpkadd vpkrm vpknfo vpkpin vpk-cli vpkadd.1
 
 dist: clean
 	mkdir -p vpk-$(VERSION)
