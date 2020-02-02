@@ -8,6 +8,7 @@
 /* TODO(5): Sort variable function declarations by size */
 /* TODO(0): Actually launch the shell commands */
 /* TODO(5): use getops to parse options */
+/* TODO(3): check if malloc calls were successful */
 
 #include <dirent.h>
 #include <errno.h>
@@ -53,22 +54,22 @@ main(int argc, char *argv[])
 	} else if (argv[1][0] == '-') {
 		goto unknown_option;
 	} else {
-		char *pkgv[argc - 1];
+		int pkgc = argc - 1;
+		char *pkgv[pkgc];
 
 		for (int i = 0; i < argc - 1; i++) {
 			pkgv[i] = argv[i + 1];
 		}
-		(void)install(pkgv, argc - 1);
+		(void)install(pkgv, pkgc);
 	}
 
 	(void)commit();
 	(void)close();
 
-	unknown_option:
-		printf("vpkadd: Unknown option %s%s\n", argv[0], argv[1]);
-		printusg();
-		exit(EXIT_FAILURE);
-
+unknown_option:
+	printf("vpkadd: Unknown option %s%s\n", argv[0], argv[1]);
+	printusg();
+	exit(EXIT_FAILURE);
 }
 
 void
