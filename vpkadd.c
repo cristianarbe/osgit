@@ -10,12 +10,14 @@
 /* TODO(5): use getops to parse options */
 /* TODO(3): check if malloc calls were successful */
 
-#include <dirent.h>
-#include <errno.h>
-
 #include "vpkadd.h"
 
-// static void die(char *msg);
+#include <dirent.h>
+#include <errno.h>
+#include <stdlib.h>
+#include <sys/wait.h>
+
+static void die(char *msg);
 static void printusg(void);
 static void printusg(void);
 
@@ -23,9 +25,9 @@ int
 main(int argc, char *argv[])
 {
 	DIR *dir;
-	const char *tmp;
 	char *gitdir;
-	int size;
+	const char *tmp;
+	int size, err;
 
 	// Checking if needs to initialize
 	tmp = "%s/.git";
@@ -44,11 +46,11 @@ main(int argc, char *argv[])
 	(void)update();
 
 	if (argc < 2) {
-		close();
+		goto close;
 	}
 
 	if (strcmp(argv[1], "-c") == 0) {
-		(void)checkout("abcde");
+		(void)checkout(argv[2]);
 	} else if (strcmp(argv[1], "-u") == 0) {
 		(void)upgrade();
 	} else if (argv[1][0] == '-') {
@@ -64,12 +66,24 @@ main(int argc, char *argv[])
 	}
 
 	(void)commit();
-	(void)close();
+	goto close;
+
+	return 0;
 
 unknown_option:
-	printf("vpkadd: Unknown option %s%s\n", argv[0], argv[1]);
+	printf("vpkadd: Unknown option %s %s\n", argv[0], argv[1]);
 	printusg();
 	exit(EXIT_FAILURE);
+
+close:
+	err = WEXITSTATUS(system(cmd));
+	if (err != 0) {
+		die(rtverr(err));
+	}
+
+	printf("All done!");
+
+	exit(EXIT_SUCCESS);
 }
 
 void
@@ -78,9 +92,9 @@ printusg(void)
 	printf("Usage: vpkadd [-cu] package-name ...\n");
 }
 
-// void
-// die(char *diemsg)
-// {
-// 	fprintf(stderr, "vpkadd: %s\n", diemsg);
-// 	exit(EXIT_FAILURE);
-// }
+void
+die(char *diemsg)
+{
+	fprintf(stderr, "vpkadd: %s\n", diemsg);
+	exit(EXIT_FAILURE);
+}
