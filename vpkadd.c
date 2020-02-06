@@ -6,7 +6,6 @@
 /* TODO(5): Implement asserts if needed */
 /* TODO(3): Make a struct for cmd */
 /* TODO(5): Sort variable function declarations by size */
-/* TODO(0): Actually launch the shell commands */
 /* TODO(5): use getops to parse options */
 /* TODO(3): check if malloc calls were successful */
 
@@ -17,6 +16,7 @@
 #include <stdlib.h>
 #include <sys/wait.h>
 
+static char *rtverr(int);
 static void die(char *msg);
 static void printusg(void);
 static void printusg(void);
@@ -81,7 +81,7 @@ close:
 		die(rtverr(err));
 	}
 
-	printf("All done!");
+	printf("All done!\n");
 
 	exit(EXIT_SUCCESS);
 }
@@ -97,4 +97,31 @@ die(char *diemsg)
 {
 	fprintf(stderr, "vpkadd: %s\n", diemsg);
 	exit(EXIT_FAILURE);
+}
+
+static char *
+rtverr(int id)
+{
+	switch (id) {
+	case 2:
+		return "apt update failed";
+	case 3:
+		return "apt install failed";
+	case 4:
+		return "git init failed";
+	case 5:
+		return "updating packages failed";
+	case 6:
+		return "git show failed";
+	case 7:
+		return "apt purge failed";
+	case 8:
+		return "apt purge failed";
+	case 9:
+		return "git commit failed";
+	case 10:
+		return "dumping packages failed";
+	default:
+		return "failed due to an unknow reason";
+	}
 }
