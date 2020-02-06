@@ -14,7 +14,8 @@ $ git clone https://github.com/cristianrz/vpkutils.git
 
 ```
 $ cd vpkutils
-$ sh install
+$ make
+# make install
 ```
 
 3. and done!
