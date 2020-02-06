@@ -24,6 +24,7 @@
 #define VPK_APTPURGE_FAILURE 7
 #define VPK_APTUPGRADE_FAILURE 8
 #define VPK_GITCOMMIT_FAILURE 9
+#define VPK_PKGDUMP_FAILURE 10
 
 /* Types */
 
@@ -36,7 +37,7 @@ int init(void);
 int install(char *[], int);
 int update(void);
 int upgrade(void);
-void setmsg(char *, char *);
+static void setmsg(char *, char *);
 
 /* Globals */
 
@@ -48,7 +49,7 @@ static int cmdc = icmdc;
 
 /* Function definitions */
 
-int
+static int
 intlen(int x)
 {
 	if (x >= 1000)
@@ -106,11 +107,11 @@ update(void)
 	/* TODO(5): Implement error codes here */
 	presub =
 	    "%sdpkg-query -Wf '${Package}=${Version}\\n' | sort > %s/packages || return %i\n"
-	    "git --git-dir=%s/.git --work-tree=%s commit -a -m \"Sync\" > /dev/null 2>&1\n"
+	    "git --git-dir=%s/.git --work-tree=%s commit -a -m \"Sync\"\n"
 	    "apt-get -q update || exit %i\n";
 
 	newc = strlen(presub) + 3 * (strlen(_PATH_VPK) - 2) +
-	    (intlen(VPK_APTUPDATE_FAILURE) - 2) +
+	    (intlen(VPK_PKGDUMP_FAILURE) - 2) +
 	    (intlen(VPK_PKGUPDATE_FAILURE) - 2);
 
 	cmdc += newc;
@@ -120,7 +121,7 @@ update(void)
 	} else {
 		tmp = (char *)realloc(cmd, cmdc + 1);
 	}
-	sprintf(tmp, presub, cmd, _PATH_VPK, VPK_APTUPDATE_FAILURE, _PATH_VPK,
+	sprintf(tmp, presub, cmd, _PATH_VPK, VPK_PKGDUMP_FAILURE, _PATH_VPK,
 	    _PATH_VPK, VPK_PKGUPDATE_FAILURE);
 
 	cmd = tmp;
@@ -195,15 +196,6 @@ upgrade(void)
 	return 0;
 }
 
-// int
-// close(void)
-// {
-// 	printf("=> going to system\n");
-// 	printf("%s\n",cmd);
-// 	printf("=> returning and running command\n");
-// 	return system(cmd);
-// }
-
 int
 install(char *pkgv[], int pkgc)
 {
@@ -261,13 +253,15 @@ commit(void)
 
 	/* TODO(5): Implement error codes here */
 	presub =
-	    "dpkg-query -Wf '${Package}=${Version}\\n' | sort > %s/packages || exit 5\n"
-	    "git --git-dir %s/.git --work-tree=%s/vpk commit -a -m \"%s\" > /dev/null 2>&1 || exit 9\n";
+	    "dpkg-query -Wf '${Package}=${Version}\\n' | sort > %s/packages || exit 10\n"
+	    "git --git-dir=%s/.git --work-tree=%s add packages  -f || exit 9\n"
+	    "git --git-dir=%s/.git --work-tree=%s commit -a -m \"%s\" || exit 9\n";
 
-	size = strlen(presub) + 3 * (strlen(_PATH_VPK) - 2) + (strlen(msg) - 2);
+	size = strlen(presub) + 5 * (strlen(_PATH_VPK) - 2) + (strlen(msg) - 2);
 
 	postsub = (char *)malloc(size + 1);
-	(void)sprintf(postsub, presub, _PATH_VPK, _PATH_VPK, _PATH_VPK, msg);
+	(void)sprintf(postsub, presub, _PATH_VPK, _PATH_VPK, _PATH_VPK,
+	    _PATH_VPK, _PATH_VPK, msg);
 
 	cmdc += size;
 	if (cmdc - size == icmdc) {
@@ -282,7 +276,7 @@ commit(void)
 	return 0;
 }
 
-void
+static void
 setmsg(char *prefix, char *suffix)
 {
 	int size;
@@ -291,29 +285,4 @@ setmsg(char *prefix, char *suffix)
 	msg = malloc(size + 1);
 	(void)strlcpy(msg, prefix, size + 1);
 	(void)strlcat(msg, suffix, size + 1);
-}
-
-char *
-rtverr(int id)
-{
-	switch (id) {
-	case 2:
-		return "apt update failed";
-	case 3:
-		return "apt install failed";
-	case 4:
-		return "git init failed";
-	case 5:
-		return "updating packages failed";
-	case 6:
-		return "git show failed";
-	case 7:
-		return "apt purge failed";
-	case 8:
-		return "apt purge failed";
-	case 9:
-		return "apt upgrade failed";
-	default:
-		return "failed due to an unknow reason";
-	}
 }
