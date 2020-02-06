@@ -1,5 +1,11 @@
-.clocignore
-.style-guide.md
-.vscode
-checks
-usr/var
+.vscode/launch.json
+TODO
+test.log
+vpk
+vpkadd
+vpkadd.1
+vpkadd.sh
+vpkpin.sh
+vpknfo
+vpkpin
+vpkrm

@@ -1,0 +1,5 @@
+#!/bin/sh
+grep -nr 'TODO(1)' ./* --exclude=findtodo
+grep -nr 'TODO(2)' ./* --exclude=findtodo
+grep -nr 'TODO(0)' ./* --exclude=findtodo
+grep -nr 'TODO(5)' ./* --exclude=findtodo
