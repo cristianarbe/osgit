@@ -3,12 +3,6 @@
  * See LICENSE file for license details.
  */
 
-/* TODO(5): Implement asserts if needed */
-/* TODO(3): Make a struct for cmd */
-/* TODO(5): Sort variable function declarations by size */
-/* TODO(5): use getops to parse options */
-/* TODO(3): check if malloc calls were successful */
-
 #include "vpkadd.h"
 
 #include <dirent.h>
