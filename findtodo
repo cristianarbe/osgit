@@ -1,19 +1,5 @@
 #!/bin/sh
-
-case "$1" in
-"must")
-	grep -nr 'TODO(1)' ./* --exclude=findtodo
-	grep -nr 'TODO(2)' ./* --exclude=findtodo
-	grep -nr 'TODO(0)' ./* --exclude=findtodo
-	;;
-"nice")
-	grep -nr 'TODO(3)' ./* --exclude=findtodo
-	grep -nr 'TODO(5)' ./* --exclude=findtodo
-	;;
-"now")
-    ( ./findtodo must; ./findtodo nice ) | head -n 1
-    ;;
-*)
-	echo '?'
-	;;
-esac
+grep -nr 'TODO(1)' ./* --exclude=findtodo
+grep -nr 'TODO(2)' ./* --exclude=findtodo
+grep -nr 'TODO(0)' ./* --exclude=findtodo
+grep -nr 'TODO(5)' ./* --exclude=findtodo
