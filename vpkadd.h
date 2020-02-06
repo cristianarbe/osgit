@@ -5,12 +5,16 @@
 
 /* Headers */
 
+#define _GNU_SOURCE
+
 #include <bsd/string.h>
 #include <dirent.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+
+#include "pathnames.h"
 
 /* Macros */
 
@@ -37,29 +41,14 @@ int init(void);
 int install(char *[], int);
 int update(void);
 int upgrade(void);
-static void setmsg(char *, char *);
+static int setmsg(char *, char *);
 
 /* Globals */
 
 char *cmd = "";
 char *msg;
-const char *_PATH_VPK = "/var/cache/vpk";
-static const int icmdc = 0;
-static int cmdc = icmdc;
 
 /* Function definitions */
-
-static int
-intlen(int x)
-{
-	if (x >= 1000)
-		return 4;
-	if (x >= 100)
-		return 3;
-	if (x >= 10)
-		return 2;
-	return 1;
-}
 
 int
 init(void)
@@ -67,7 +56,7 @@ init(void)
 	DIR *dir;
 	char *tmp;
 	const char *presub;
-	int newc;
+	int err;
 
 	dir = opendir(_PATH_VPK);
 	if (dir == NULL) {
@@ -79,18 +68,11 @@ init(void)
 	closedir(dir);
 
 	presub = "%sgit --git-dir=%s/.git --work-tree=%s init || exit %i\n";
-	newc = strlen(presub) + 2 * (strlen(_PATH_VPK) - 2) +
-	    (intlen(VPK_GITINIT_FAILURE) - 2);
-	cmdc += newc;
-
-	if (cmdc - newc == icmdc) {
-		tmp = (char *)malloc(cmdc + 1);
-	} else {
-		tmp = (char *)realloc(cmd, cmdc + 1);
+	err = asprintf(
+	    &tmp, presub, cmd, _PATH_VPK, _PATH_VPK, VPK_GITINIT_FAILURE);
+	if (err < 0) {
+		return 1;
 	}
-
-	(void)sprintf(
-	    tmp, cmd, presub, _PATH_VPK, _PATH_VPK, VPK_GITINIT_FAILURE);
 
 	cmd = tmp;
 
@@ -102,7 +84,7 @@ update(void)
 {
 	char *tmp;
 	const char *presub;
-	int newc;
+	int newc, size, err;
 
 	/* TODO(5): Implement error codes here */
 	presub =
@@ -110,19 +92,11 @@ update(void)
 	    "git --git-dir=%s/.git --work-tree=%s commit -a -m \"Sync\"\n"
 	    "apt-get -q update || exit %i\n";
 
-	newc = strlen(presub) + 3 * (strlen(_PATH_VPK) - 2) +
-	    (intlen(VPK_PKGDUMP_FAILURE) - 2) +
-	    (intlen(VPK_PKGUPDATE_FAILURE) - 2);
-
-	cmdc += newc;
-
-	if (cmdc - newc == icmdc) {
-		tmp = (char *)malloc(cmdc + 1);
-	} else {
-		tmp = (char *)realloc(cmd, cmdc + 1);
+	err = asprintf(&tmp, presub, cmd, _PATH_VPK, VPK_PKGDUMP_FAILURE,
+	    _PATH_VPK, _PATH_VPK, VPK_PKGUPDATE_FAILURE);
+	if (err < 1) {
+		return 1;
 	}
-	sprintf(tmp, presub, cmd, _PATH_VPK, VPK_PKGDUMP_FAILURE, _PATH_VPK,
-	    _PATH_VPK, VPK_PKGUPDATE_FAILURE);
 
 	cmd = tmp;
 
@@ -134,7 +108,7 @@ checkout(char *id)
 {
 	char *tmp;
 	const char *presub;
-	int newc;
+	int newc, err;
 
 	/* TODO(5): Implement error codes here */
 	presub =
@@ -143,27 +117,18 @@ checkout(char *id)
 	    "eval \"apt-get -q --autoremove purge $(comm -23 %s/packages %s/packages.tmp)\" || exit 7\n"
 	    "rm %s/packages.tmp\n";
 
-	newc = strlen(presub) + 8 * (strlen(_PATH_VPK) - 2) + (strlen(id) - 2);
-
-	cmdc += newc;
-
-	if (cmdc - newc == icmdc) {
-		tmp = (char *)malloc(cmdc + 1);
-	} else {
-		tmp = (char *)realloc(cmd, cmdc + 1);
-	}
-
-	if (tmp == NULL) {
-		fprintf(stderr, "vpkadd: malloc failed\n");
+	err = asprintf(&tmp, presub, cmd, _PATH_VPK, _PATH_VPK, id, _PATH_VPK,
+	    _PATH_VPK, _PATH_VPK, _PATH_VPK, _PATH_VPK, _PATH_VPK);
+	if (err < 0) {
 		return 1;
 	}
 
-	(void)sprintf(tmp, presub, cmd, _PATH_VPK, _PATH_VPK, id, _PATH_VPK,
-	    _PATH_VPK, _PATH_VPK, _PATH_VPK, _PATH_VPK, _PATH_VPK);
-
 	cmd = tmp;
 
-	setmsg("Checkout ", id);
+	err = setmsg("Checkout ", id);
+	if (err != 0) {
+		return 1;
+	}
 
 	return 0;
 }
@@ -173,21 +138,15 @@ upgrade(void)
 {
 	char *tmp;
 	const char *presub;
-	int newc;
+	int newc, err;
 
 	/* TODO(5): Implement error codes here */
 	presub = "%sapt-get -q upgrade || exit 8\n";
 
-	newc = strlen(presub);
-
-	cmdc += newc;
-
-	if (cmdc - newc == icmdc) {
-		tmp = (char *)malloc(cmdc + 1);
-	} else {
-		tmp = (char *)realloc(cmd, cmdc + 1);
+	err = asprintf(&tmp, presub, cmd);
+	if (err < 0) {
+		return 1;
 	}
-	sprintf(tmp, presub, cmd);
 
 	cmd = tmp;
 
@@ -199,7 +158,7 @@ upgrade(void)
 int
 install(char *pkgv[], int pkgc)
 {
-	int newc, size, pkgstrc;
+	int newc, size, pkgstrc, err;
 	const char *presub;
 	char *pkgstr, *tmp;
 
@@ -211,7 +170,12 @@ install(char *pkgv[], int pkgc)
 
 	pkgstrc = pkgc + size;
 
-	pkgstr = (char *)malloc(pkgstrc + 1);
+	pkgstr = malloc(pkgstrc + 1);
+
+	if (pkgstr == NULL) {
+		return 1;
+	}
+
 	pkgstr[0] = '\0';
 	for (int i = 0; i < pkgc; i++) {
 		(void)strlcat(pkgstr, pkgv[i], pkgstrc + 1);
@@ -226,19 +190,17 @@ install(char *pkgv[], int pkgc)
 	presub =
 	    "%sapt-get -q update || exit 2\napt-get -q install %s || exit 3\n";
 
-	newc = strlen(presub) + (pkgstrc - 2);
-	cmdc += newc;
-
-	tmp = (char *)malloc(cmdc + 1);
-	if (cmdc - size == icmdc) {
-		tmp = (char *)malloc(cmdc + 1);
-	} else {
-		tmp = (char *)realloc(cmd, cmdc + 1);
+	err = asprintf(&tmp, presub, cmd, pkgstr);
+	if (err < 0) {
+		return 1;
 	}
-	sprintf(tmp, presub, cmd, pkgstr);
+
 	cmd = tmp;
 
-	setmsg("Add ", pkgstr);
+	err = setmsg("Add ", pkgstr);
+	if (err != 0) {
+		return 1;
+	}
 	free(pkgstr);
 
 	return 0;
@@ -247,9 +209,9 @@ install(char *pkgv[], int pkgc)
 int
 commit(void)
 {
-	int size;
+	int size, err;
 	const char *presub;
-	char *postsub, *tmp;
+	char *tmp;
 
 	/* TODO(5): Implement error codes here */
 	presub =
@@ -257,32 +219,30 @@ commit(void)
 	    "git --git-dir=%s/.git --work-tree=%s add packages  -f || exit 9\n"
 	    "git --git-dir=%s/.git --work-tree=%s commit -a -m \"%s\" || exit 9\n";
 
-	size = strlen(presub) + 5 * (strlen(_PATH_VPK) - 2) + (strlen(msg) - 2);
-
-	postsub = (char *)malloc(size + 1);
-	(void)sprintf(postsub, presub, _PATH_VPK, _PATH_VPK, _PATH_VPK,
-	    _PATH_VPK, _PATH_VPK, msg);
-
-	cmdc += size;
-	if (cmdc - size == icmdc) {
-		tmp = (char *)malloc(cmdc + 1);
-	} else {
-		tmp = (char *)realloc(cmd, cmdc + 1);
+	err = asprintf(&tmp, presub, _PATH_VPK, _PATH_VPK, _PATH_VPK, _PATH_VPK,
+	    _PATH_VPK, msg);
+	if (err < 0) {
+		return 1;
 	}
+
 	cmd = tmp;
-	(void)strlcat(cmd, postsub, cmdc + 1);
-	free(postsub);
 
 	return 0;
 }
 
-static void
+static int
 setmsg(char *prefix, char *suffix)
 {
 	int size;
 
 	size = strlen(prefix) + strlen(suffix);
 	msg = malloc(size + 1);
+	if (msg == NULL) {
+		return 1;
+	}
+
 	(void)strlcpy(msg, prefix, size + 1);
 	(void)strlcat(msg, suffix, size + 1);
+
+	return 0;
 }

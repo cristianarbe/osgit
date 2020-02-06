@@ -29,11 +29,10 @@ main(int argc, char *argv[])
 	const char *tmp;
 	int size, err;
 
-	// Checking if needs to initialize
-	tmp = "%s/.git";
-	size = (strlen(tmp) - 2) + strlen(_PATH_VPK) + 1;
-	gitdir = malloc(size);
-	sprintf(gitdir, "%s/.git", _PATH_VPK);
+	err = asprintf(&gitdir, "%s/.git", _PATH_VPK);
+	if (err < 0) {
+		die("asprintf failed");
+	}
 
 	dir = opendir(gitdir);
 	if (dir == NULL) {
