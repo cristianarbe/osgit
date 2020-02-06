@@ -1,6 +1,8 @@
 #!/bin/sh
 # Copyright 2020 Cristian Ariza. All rights reserved.
 
+# TODO(3): Transform vpkrm to C
+
 set -eu
 
 if test ! -d /var/cache/vpk/.git; then
