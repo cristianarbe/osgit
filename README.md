@@ -19,8 +19,6 @@ $ sh install
 
 3. and done!
 
-![img](gifs/installing.gif)
-
 ## Usage
 
 **TODO:** complete this
