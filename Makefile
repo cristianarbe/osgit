@@ -50,6 +50,8 @@ install: all
 	cp -f vpkrm $(DESTDIR)$(PREFIX)/sbin
 	chmod 755 $(DESTDIR)$(PREFIX)/sbin/vpkrm
 
+	cp -f vpkadd.1 $(DESTDIR)$(PREFIX)/man
+
 uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/bin/vpkadd
 	rm -f $(DESTDIR)$(PREFIX)/bin/vpknfo
