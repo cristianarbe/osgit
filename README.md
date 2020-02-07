@@ -14,7 +14,8 @@ $ git clone https://github.com/cristianrz/vpkutils.git
 
 ```
 $ cd vpkutils
-$ sh install
+$ make
+# make install
 ```
 
 3. and done!
@@ -35,4 +36,4 @@ See also the list of [contributors](https://github.com/cristianrz/gnad/contribut
 
 # License
 
-This project is licensed under the GPL-3.0 License - see the [LICENSE.md](LICENSE.md) file for details
+See the [LICENSE](LICENSE) file for details
