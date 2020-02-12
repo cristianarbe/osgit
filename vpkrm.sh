@@ -1,9 +1,7 @@
 #!/bin/sh
 # Copyright 2020 Cristian Ariza. All rights reserved.
 
-# TODO(3): Transform vpkrm to C
-
-set -eu
+set -u
 
 if test ! -d /var/cache/vpk/.git; then
 	mkdir -p /var/cache/vpk
@@ -11,7 +9,7 @@ if test ! -d /var/cache/vpk/.git; then
 fi
 
 dpkg-query -Wf '${Package}=${Version}\n' | sort > /var/cache/vpk/packages
-git --git-dir /var/cache/vpk/.git --work-tree=/var/cache/vpk commit -a -m "Sync" > /dev/null 2>&1 || true
+git --git-dir /var/cache/vpk/.git --work-tree=/var/cache/vpk commit -a -m "Sync" > /dev/null 2>&1
 
 case "$1" in
 	"-c")
