@@ -6,6 +6,8 @@
 #
 # Uninstalls packages and updates the git repo
 
+set -u
+
 #include pathnames.sh
 #include vpkrmh.sh
 
