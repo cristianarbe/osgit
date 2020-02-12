@@ -1,4 +1,5 @@
-# vpk
+% vpkutils
+# vpkutils
 
 vpk is a wrapper for apt-get that adds the capability of managing the list of installed packages as a git repository.
 
@@ -23,7 +24,7 @@ $ sh install
 
 ## Usage
 
-**TODO:** complete this
+<!-- TODO(0): complete this -->
 
 ## Contributing
 
