@@ -3,7 +3,7 @@
  * See LICENSE file for license details.
  */
 
-#include "vpkadd.h"
+#include "vpkrm.h"
 
 #include <dirent.h>
 #include <stdlib.h>
@@ -41,19 +41,23 @@ main(int argc, char *argv[])
 	}
 
 	if (strcmp(argv[1], "-c") == 0) {
-		(void)checkout(argv[2]);
-	} else if (strcmp(argv[1], "-u") == 0) {
+		// Revert commit
+		(void)revert(argv[2]);
+	} else if (strcmp(argv[1], "-a") == 0) {
+		// Remove with dependencies
 		(void)upgrade();
 	} else if (argv[1][0] == '-') {
 		goto unknown_option;
 	} else {
+		// Normal remove
 		int pkgc = argc - 1;
 		char *pkgv[pkgc];
 
-		for (int i = 0; i < argc - 1; i++) {
+		for (int i = 0; i < pkgc; i++) {
 			pkgv[i] = argv[i + 1];
 		}
-		(void)install(pkgv, pkgc);
+
+		(void)uninstall(pkgv, pkgc);
 	}
 
 	(void)commit();

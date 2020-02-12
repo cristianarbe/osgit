@@ -34,7 +34,7 @@
 
 /* Function declarations */
 
-int checkout(char *);
+int revert(char *);
 int close(void);
 int commit(void);
 int init(void);
@@ -89,12 +89,11 @@ update(void)
 	/* TODO(5): Implement error codes here */
 	presub =
 	    "%sdpkg-query -Wf '${Package}=${Version}\\n' | sort > %s/packages || return %i\n"
-	    "git --git-dir=%s/.git --work-tree=%s add packages -f\n"
-	    "git --git-dir=%s/.git --work-tree=%s commit -m \"Sync\"\n"
-	    "apt-get -q update || exit %i\n";
+	    "git --git-dir=%s/.git --work-tree=%s add packages -f \n"
+	    "git --git-dir=%s/.git --work-tree=%s commit -m \"Sync\"\n";
 
 	err = asprintf(&tmp, presub, cmd, _PATH_VPK, VPK_PKGDUMP_FAILURE,
-	    _PATH_VPK, _PATH_VPK, VPK_PKGUPDATE_FAILURE);
+	    _PATH_VPK, _PATH_VPK);
 	if (err < 1) {
 		return 1;
 	}
@@ -105,7 +104,7 @@ update(void)
 }
 
 int
-checkout(char *id)
+revert(char *id)
 {
 	char *tmp;
 	const char *presub;
@@ -113,20 +112,20 @@ checkout(char *id)
 
 	/* TODO(5): Implement error codes here */
 	presub =
-	    "%sgit --git-dir=%s/.git --work-tree=%s show %s:packages > %s/packages.tmp || exit 6\n"
-	    "eval \"apt-get -q install $(comm -13 %s/packages %s/packages.tmp)\" || exit 3\n"
-	    "eval \"apt-get -q --autoremove purge $(comm -23 %s/packages %s/packages.tmp)\" || exit 7\n"
-	    "rm %s/packages.tmp\n";
+	    "%scp %s/packages %s/packages/packages.tmp"
+	    "git --git-dir %s/.git --work-tree=%s revert --no-commit %s"
+	    "apt-get -q install $(comm -13 %s/packages.tmp %s/packages)"
+	    "apt-get -q autoremove $(comm -23 %s/packages.tmp %s/packages)";
 
-	err = asprintf(&tmp, presub, cmd, _PATH_VPK, _PATH_VPK, id, _PATH_VPK,
-	    _PATH_VPK, _PATH_VPK, _PATH_VPK, _PATH_VPK, _PATH_VPK);
+	err = asprintf(&tmp, presub, cmd, _PATH_VPK, _PATH_VPK, _PATH_VPK,
+	    _PATH_VPK, id, _PATH_VPK, _PATH_VPK, _PATH_VPK, _PATH_VPK);
 	if (err < 0) {
 		return 1;
 	}
 
 	cmd = tmp;
 
-	err = setmsg("Checkout ", id);
+	err = setmsg("Revert ", id);
 	if (err != 0) {
 		return 1;
 	}
@@ -151,45 +150,39 @@ upgrade(void)
 
 	cmd = tmp;
 
-	setmsg("Upgrade ", "");
+	setmsg("Upgrade", "");
 
 	return 0;
 }
 
 int
-install(char *pkgv[], int pkgc)
+uninstall(char *pkgv[], int pkgc)
 {
-	int newc, size, pkgstrc, err;
+	int newc, strsize, err;
 	const char *presub;
 	char *pkgstr, *tmp;
 
-	// -1 here is to always avoid counting the last '\0'
-	size = -1;
+	strsize = pkgc - 1;
 	for (int i = 0; i < pkgc; i++) {
-		size += strlen(pkgv[i]);
+		strsize += strlen(pkgv[i]);
 	}
 
-	pkgstrc = pkgc + size;
-
-	pkgstr = malloc(pkgstrc + 1);
-
+	pkgstr = malloc(strsize + 1);
 	if (pkgstr == NULL) {
 		return 1;
 	}
 
 	pkgstr[0] = '\0';
 	for (int i = 0; i < pkgc; i++) {
-		(void)strlcat(pkgstr, pkgv[i], pkgstrc + 1);
-		if (i != pkgc - 1) {
-			(void)strlcat(pkgstr, " ", pkgstrc + 1);
+		(void)strlcat(pkgstr, pkgv[i], strsize + 1);
+
+		if (i < pkgc - 1) {
+			(void)strlcat(pkgstr, " ", strsize + 1);
 		}
 	}
 
-	pkgstr[pkgstrc] = '\0';
-
 	/* TODO(5): Implement error codes here */
-	presub =
-	    "%sapt-get -q update || exit 2\napt-get -q install %s || exit 3\n";
+	presub = "%sapt-get -q purge %s || exit 3\n";
 
 	err = asprintf(&tmp, presub, cmd, pkgstr);
 	if (err < 0) {
@@ -198,7 +191,7 @@ install(char *pkgv[], int pkgc)
 
 	cmd = tmp;
 
-	err = setmsg("Add ", pkgstr);
+	err = setmsg("Remove ", pkgstr);
 	if (err != 0) {
 		return 1;
 	}
@@ -216,12 +209,12 @@ commit(void)
 
 	/* TODO(5): Implement error codes here */
 	presub =
-	    "dpkg-query -Wf '${Package}=${Version}\\n' | sort > %s/packages || exit 10\n"
+	    "%sdpkg-query -Wf '${Package}=${Version}\\n' | sort > %s/packages || exit 10\n"
 	    "git --git-dir=%s/.git --work-tree=%s add packages  -f || exit 9\n"
 	    "git --git-dir=%s/.git --work-tree=%s commit -m \"%s\" || exit 9\n";
 
-	err = asprintf(&tmp, presub, _PATH_VPK, _PATH_VPK, _PATH_VPK, _PATH_VPK,
-	    _PATH_VPK, msg);
+	err = asprintf(&tmp, presub, cmd, _PATH_VPK, _PATH_VPK, _PATH_VPK,
+	    _PATH_VPK, _PATH_VPK, msg);
 	if (err < 0) {
 		return 1;
 	}

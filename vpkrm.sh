@@ -18,18 +18,11 @@ case "$1" in
 		# revert
 		shift
 
-		tmp="$(mktemp)"
-		cp /var/cache/vpk/packages "$tmp"
-
+		cp /var/cache/vpk/packages /var/cache/vpk/packages/packages.tmp
 		git --git-dir /var/cache/vpk/.git --work-tree=/var/cache/vpk revert --no-commit "$1"
-
-		# shellcheck disable=SC2046
-		apt-get -q install $(comm -13 "$tmp" /var/cache/vpk/packages)
-		# shellcheck disable=SC2046
-		apt-get -q autoremove $(comm -23 "$tmp" /var/cache/vpk/packages)
-
-		dpkg-query -Wf '${Package}=${Version}\n' | sort > /var/cache/vpk/packages
-		git --git-dir /var/cache/vpk/.git --work-tree=/var/cache/vpk commit -a -m "Revert $*" > /dev/null 2>&1
+		apt-get -q install $(comm -13 /var/cache/vpk/packages.tmp /var/cache/vpk/packages)
+		apt-get -q autoremove $(comm -23 /var/cache/vpk/packages.tmp /var/cache/vpk/packages)
+		git --git-dir /var/cache/vpk/.git --work-tree=/var/cache/vpk commit -a -m "Revert $*"
 		;;
 	*)
 		# shellcheck disable=SC2086
