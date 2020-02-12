@@ -4,100 +4,82 @@
 #
 # See LICENSE file for license details.
 #
-# Uninstalls packages and updates the git repo
+# Installs packages and updates the git repo
 
-set -u
+WORKDIR="/var/cache/vpk"
 
-#include pathnames.sh
-#include vpkrmh.sh
+try() { "$@" || exit "$?"; }
 
-main() {
-	while test "$#" -gt 0; do
-		case "$1" in
-		"-v") verbose=true ;;
-		"-d") set -x ;;
-		"--help") print_usg 0 ;;
-		"-c")
-			if test -n "$action"; then
-				print_usg 1
-			fi
-
-			action=checkout
-			shift
-			id="$1"
-			;;
-		"-"*) print_usg 1 ;;
-		*)
-			if test -n "$action"; then
-				print_usg 1
-			fi
-
-			action="uninstall"
-
-			packages="$packages $1"
-			;;
-		esac
-
-<<<<<<< HEAD
-case "$1" in
-"-c")
-	# revert
-	shift
-
-	cp /var/cache/vpk/packages /var/cache/vpk/packages/packages.tmp
-	git --git-dir /var/cache/vpk/.git --work-tree=/var/cache/vpk revert --no-commit "$1"
-	apt-get -q install $(comm -13 /var/cache/vpk/packages.tmp /var/cache/vpk/packages)
-	apt-get -q autoremove $(comm -23 /var/cache/vpk/packages.tmp /var/cache/vpk/packages)
-	git --git-dir /var/cache/vpk/.git --work-tree=/var/cache/vpk commit -a -m "Revert $*"
-	;;
-*)
-	# shellcheck disable=SC2086
-	# shellcheck disable=SC2048
-	apt-get -q --autoremove purge $*
-	dpkg-query -Wf '${Package}=${Version}\n' | sort > /var/cache/vpk/packages
-	git --git-dir /var/cache/vpk/.git --work-tree=/var/cache/vpk commit -a -m "Remove $*"
-	;;
-esac
-=======
-		shift
-	done
-
-	if test ! -d "$_GIT_DIR"; then
-		try vpkinit $_WORK_DIR
-		log "Initialised."
-	fi
-
-	case "$action" in
-	uninstall)
-		try vpkinstall "$@"
-        log "Installed packages $*."
-		msg="Install $*"
-		;;
+quiet() {
+	case "$verbose" in
+		true) "$@" ;;
+		*) "$@" > /dev/null ;;
 	esac
-
-	try vpkcommit "$_WORK_DIR" "$msg"
 }
 
-print_usg() {
-	cat <<'EOF' >&2
-pkutils v0.7.0 (C) Cristian Ariza
+vpkinit() {
+	mkdir -p "$WORKDIR" || return "$?"
+	quiet git --git-dir="$WORKDIR"/.git --work-tree="$WORKDIR" init || return "$?"
+}
 
-Usage: vpkrm [-dv] [--help] [-c COMMITID] [PACKAGE]...
-EOF
+vpkuninstall() { apt-get --autoremove purge "$@"; }
+
+vpkcommit() {
+	dpkg-query -Wf '${Package}=${Version}\n' | sort > "$WORKDIR"/packages || return "$?"
+	quiet git --git-dir="$WORKDIR"/.git --work-tree="$WORKDIR" add packages -f || return "$?"
+	quiet git --git-dir="$WORKDIR"/.git --work-tree="$WORKDIR" commit -m "$2" || return "$?"
+}
+
+vpkrevert() {
+	TMP="$(mktemp)"
+	quiet git --git-dir="$WORKDIR"/.git --work-tree="$WORKDIR" show \
+		"$2":packages > "$TMP"
+
+	# Apparently this is the corrent way to do it but not sure why
+	eval "set -- $(comm -13 $WORKDIR/packages "$TMP")"
+	apt-get install "$@"
+	eval "set -- $(comm -23 $WORKDIR/packages "$TMP")"
+	apt-get --autoremove purge "$@"
+
+	rm "$TMP"
+	unset "$TMP"
+}
+
+usage() {
+	printf 'pkutils v0.7.0 (C) Cristian Ariza
+
+Usage: %s [-dv] [--help] [-c COMMITID] [PACKAGE]...\n' "$(basename "$0")" >&2
 	exit "$1"
 }
 
-try() {
-	if ! "$@"; then
-		exit 1
-	fi
-}
+while test "$#" -gt 0; do
+	arg="$1" && shift
+	case "$arg" in
+		"-v") verbose=true ;;
+		"-d") set -x ;;
+		"--help") usage 0 ;;
+		"-c")
+			action="revert"
+			break
+			;;
+		"-"*) usage 1 ;;
+		*)
+			action="uninstall"
+			set -- "$arg" "$@"
+			break
+			;;
+	esac
+done
 
-log() {
-	if "$verbose"; then
-		printf "%s\n" "$*"
-	fi
-}
+if test -z "$action"; then
+	usage 1
+fi
 
-main "$@"
->>>>>>> 5e85bd4f183200c69b6578424c5aaa65e7c44d2b
+if test ! -d "$WORKDIR"/.git; then
+	try vpkinit "$WORKDIR"
+fi
+
+try "vpk$action" "$@"
+try vpkcommit "$action $*"
+
+exit 0

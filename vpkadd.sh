@@ -6,94 +6,91 @@
 #
 # Installs packages and updates the git repo
 
-#include pathnames.sh
-#include vpkaddh.sh
+WORKDIR="/var/cache/vpk"
 
-main() {
-	while test "$#" -gt 0; do
-		case "$1" in
-		"-v") verbose=true ;;
-		"-d") set -x ;;
-		"--help") print_usg 0 ;;
-		"-c")
-			if test -n "$action"; then
-				print_usg 1
-			fi
+try() { "$@" || exit "$?"; }
 
-			action=checkout
-			shift
-			id="$1"
-			;;
-		"-u")
-			if test -n "$action"; then
-				print_usg 1
-			fi
-
-			action=upgrade
-			;;
-		"-"*) print_usg 1 ;;
-		*)
-			if test -n "$action"; then
-				print_usg 1
-			fi
-
-			action="install"
-
-			packages="$packages $1"
-			;;
-		esac
-
-		shift
-	done
-
-	if test ! -d "$_GIT_DIR"; then
-		try vpkinit $_WORK_DIR
-		log "Initialised."
-	fi
-
-	try vpkupdate "$_WORK_DIR"
-	log "Updated."
-
-	case "$action" in
-	install)
-		try vpkinstall "$@"
-        log "Installed packages $*."
-		msg="Install $*"
-		;;
-	upgrade)
-		try vpkupgrade
-		msg="Upgrade packages"
-        log "Upgraded."
-		;;
-    checkout)
-        try vpkcheckout "$_WORK_DIR" "$id"
-        msg="Checkout $id"
-        log "Checked out $id."
-    ;;
+quiet() {
+	case "$verbose" in
+		true) "$@" ;;
+		*) "$@" > /dev/null ;;
 	esac
-
-	try vpkcommit "$_WORK_DIR" "$msg"
 }
 
-print_usg() {
-	cat <<'EOF' >&2
-pkutils v0.7.0 (C) Cristian Ariza
+vpkinit() {
+	mkdir -p "$WORKDIR" || return "$?"
+	quiet git --git-dir="$WORKDIR"/.git --work-tree="$WORKDIR" init || return "$?"
+}
 
-Usage: vpkadd [-duv] [--help] [-c COMMITID] [PACKAGE]...
-EOF
+vpkupdate() {
+	dpkg-query -Wf '${Package}=${Version}\n' | sort > "$WORKDIR"/packages || return "$?"
+	quiet git --git-dir="$WORKDIR"/.git --work-tree="$WORKDIR" add packages -f || return "$?"
+	quiet git --git-dir="$WORKDIR"/.git --work-tree="$WORKDIR" commit -m "Sync"
+	quiet apt-get update || return "$?"
+}
+
+vpkinstall() { apt-get install "$@"; }
+
+vpkupgrade() { apt-get upgrade -y; }
+
+vpkcommit() {
+	dpkg-query -Wf '${Package}=${Version}\n' | sort > "$WORKDIR"/packages || return "$?"
+	quiet git --git-dir="$WORKDIR"/.git --work-tree="$WORKDIR" add packages -f || return "$?"
+	quiet git --git-dir="$WORKDIR"/.git --work-tree="$WORKDIR" commit -m "$2" || return "$?"
+}
+
+vpkcheckout() {
+	TMP="$(mktemp)"
+	quiet git --git-dir="$WORKDIR"/.git --work-tree="$WORKDIR" show \
+		"$2":packages > "$TMP" || return "$?"
+
+	eval "set -- $(comm -13 $WORKDIR/packages "$TMP")"
+	apt-get install "$@" || return "$?"
+	eval "set -- $(comm -23 $WORKDIR/packages "$TMP")"
+	apt-get --autoremove purge "$@" || return "$?"
+
+	rm "$TMP" || return "$?"
+	unset "$TMP"
+}
+
+usage() {
+	printf 'pkutils v0.7.0 (C) Cristian Ariza
+
+Usage: %s [-duv] [--help] [-c COMMITID] [PACKAGE]...\n' "$(basename "$0")" >&2
 	exit "$1"
 }
 
-try() {
-	if ! "$@"; then
-		exit 1
-	fi
-}
+while test "$#" -gt 0; do
+	arg="$1" && shift
+	case "$arg" in
+		"-v") verbose=true ;;
+		"-d") set -x ;;
+		"--help") usage 0 ;;
+		"-c")
+			action="checkout"
+			break
+			;;
+		"-u")
+			action="upgrade"
+			break
+			;;
+		"-"*) usage 1 ;;
+		*)
+			action="install"
+			break
+			;;
+	esac
+done
 
-log() {
-	if test "$verbose" = true; then
-		printf "%s\n" "$*"
-	fi
-}
+if test ! -d "$WORKDIR"/.git; then
+	try vpkinit
+fi
 
-main "$@"
+try vpkupdate
+
+if test -n "$action"; then
+	try "vpk$action" "$@"
+	try vpkcommit "$action $*"
+fi
+
+exit 0
