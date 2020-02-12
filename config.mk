@@ -1,5 +1,5 @@
-SC = shfmt
-SFLAGS = -mn
+SC = cat
+SFLAGS =
 MC = pandoc
 MFLAGS = -s -t man
 PREFIX = /usr/local
