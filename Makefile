@@ -2,10 +2,7 @@ include config.mk
 
 OBJ = main.c vpk.h files.h vpk.h str.h
 
-all: vpkadd vpkrm vpknfo vpkpin
-
-vpkadd: vpkadd.c vpkadd.h vpkadd.1
-	$(CC) $(CFLAGS) -o vpkadd $(CLIBS) vpkadd.c
+all: vpkadd vpkrm vpknfo vpkpin vpkadd.1
 
 vpkrm: vpkrm.c vpkrm.h vpkrm.1
 	$(CC) $(CFLAGS) -o vpkrm $(CLIBS) vpkrm.c
@@ -40,21 +37,14 @@ check:
 
 install: all
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
-	mkdir -p $(DESTDIR)$(PREFIX)/sbin
+	mkdir -p $(DESTDIR)$(PREFIX)/lib
 
-	cp -f vpkadd $(DESTDIR)$(PREFIX)/sbin
-	chmod 755 $(DESTDIR)$(PREFIX)/sbin/vpkadd
+	cp -f vpkadd $(DESTDIR)$(PREFIX)/bin
+	chmod 755 $(DESTDIR)$(PREFIX)/bin/vpkadd
 
-	cp -f vpknfo $(DESTDIR)$(PREFIX)/bin
-	chmod 755 $(DESTDIR)$(PREFIX)/bin/vpknfo
+	cp -f libvpkadd.sh $(DESTDIR)$(PREFIX)/lib
 
-	cp -f vpkpin $(DESTDIR)$(PREFIX)/sbin
-	chmod 755 $(DESTDIR)$(PREFIX)/sbin/vpkpin
-
-	cp -f vpkrm $(DESTDIR)$(PREFIX)/sbin
-	chmod 755 $(DESTDIR)$(PREFIX)/sbin/vpkrm
-
-	cp -f vpkadd.1 $(DESTDIR)$(PREFIX)/man
+	cp -f vpkadd.1 $(DESTDIR)$(PREFIX)/man/man1
 
 uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/bin/vpkadd
