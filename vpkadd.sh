@@ -6,18 +6,10 @@
 #
 # Installs packages and updates the git repo
 
-WORKDIR="/var/cache/vpk"
-GITDIR="/var/cache/vpk/.git"
-PREFIX="$(
-    cd "$(dirname "$0")"/.. || exit 1
-    pwd
-)"
-
-# shellcheck disable=SC1090
-. "$PREFIX"/lib/libvpkadd.sh || exit 1
+#include pathnames.sh
+#include vpkaddh.sh
 
 main() {
-
 	while test "$#" -gt 0; do
 		case "$1" in
 		"-v") verbose=true ;;
@@ -54,12 +46,12 @@ main() {
 		shift
 	done
 
-	if test ! -d "$GITDIR"; then
-		try vpkinit $WORKDIR
+	if test ! -d "$_GIT_DIR"; then
+		try vpkinit $_WORK_DIR
 		log "Initialised."
 	fi
 
-	try vpkupdate "$WORKDIR"
+	try vpkupdate "$_WORK_DIR"
 	log "Updated."
 
 	case "$action" in
@@ -74,13 +66,13 @@ main() {
         log "Upgraded."
 		;;
     checkout)
-        try vpkcheckout "$WORKDIR" "$id"
+        try vpkcheckout "$_WORK_DIR" "$id"
         msg="Checkout $id"
         log "Checked out $id."
     ;;
 	esac
 
-	try vpkcommit "$WORKDIR" "$msg"
+	try vpkcommit "$_WORK_DIR" "$msg"
 }
 
 print_usg() {

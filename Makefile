@@ -2,54 +2,56 @@ include config.mk
 
 OBJ = main.c vpk.h files.h vpk.h str.h
 
-all: vpkadd vpkrm vpknfo vpkpin vpkadd.1
+all: vpkadd vpkadd.1 vpkrm vpkrm.1 vpkinfo vpkinfo.1 Makefile
 
-vpkrm: vpkrm.c vpkrm.h vpkrm.1
-	$(CC) $(CFLAGS) -o vpkrm $(CLIBS) vpkrm.c
+vpkadd: vpkadd.sh vpkaddh.sh pathnames.sh Makefile
+	@$(SC) vpkadd.sh > vpkadd
+	@chmod +x vpkadd
 
-vpknfo: vpknfo.sh
-	$(SC) $(SFLAGS) vpknfo.sh > vpknfo
-	chmod +x vpknfo
+vpkadd.1: vpkadd.md Makefile
+	@$(MC) $(MFLAGS) -o vpkadd.1 vpkadd.md
 
-vpkpin: vpkpin.sh
-	$(SC) $(SFLAGS) vpkpin.sh > vpkpin
-	chmod +x vpkpin
+vpkrm: vpkrm.sh vpkrmh.sh pathnames.sh Makefile
+	@$(SC) vpkrm.sh > vpkrm
+	@chmod +x vpkrm
 
-vpkadd.1: vpkadd.md
-	pandoc -s -t man vpkadd.md -o vpkadd.1
+vpkrm.1: vpkrm.md Makefile
+	@$(MC) $(MFLAGS) -o vpkrm.1 vpkrm.md
 
-vpkrm.1: vpkrm.md
-	pandoc -s -t man vpkrm.md -o vpkrm.1
+vpkinfo: vpkinfo.sh vpkinfoh.sh pathnames.sh Makefile
+	@$(SC) vpkinfo.sh > vpkinfo
+	@chmod +x vpkinfo
 
-clean:
-	rm -f vpkadd vpkrm vpknfo vpkpin vpk-cli vpkadd.1 vpkrm.1
+vpkinfo.1: vpkinfo.md Makefile
+	@$(MC) $(MFLAGS) -o vpkinfo.1 vpkinfo.md
 
-dist: clean
-	mkdir -p vpk-$(VERSION)
-	cp -R LICENSE config.mk Makefile README.md vpkadd.sh vpknfo.sh vpmrk.sh vpk-$(VERSION) 
-	tar -czf vpk-$(VERSION).tar.gz vpk-$(VERSION)
-	rm -rf vpk-$(VERSION)
+clean: Makefile
+	@rm -f vpkadd vpkrm vpkinfo vpkpin vpk-cli vpkadd.1 vpkrm.1 vpkinfo.1
 
-check:
-	clang-format -i *.h *.c
-	iwyu vpkadd.c
-	iwyu vpkrm.c
+dist: clean Makefile
+	@mkdir -p vpkutils-$(VERSION)
+	@cp -R config.mk LICENSE Makefile pathnames.h shsl vpkadd.md vpkadd.sh vpkaddh.sh vpkinfo.sh vpkrm.md vpkrm.sh vpk-$(VERSION) 
+	@tar -czf vpk-$(VERSION).tar.gz vpk-$(VERSION)
+	@rm -rf vpk-$(VERSION)
 
-install: all
-	mkdir -p $(DESTDIR)$(PREFIX)/bin
-	mkdir -p $(DESTDIR)$(PREFIX)/lib
+install: all Makefile
+	@mkdir -p $(DESTDIR)$(PREFIX)/bin
 
-	cp -f vpkadd $(DESTDIR)$(PREFIX)/bin
-	chmod 755 $(DESTDIR)$(PREFIX)/bin/vpkadd
+	@cp -f vpkadd $(DESTDIR)$(PREFIX)/bin
+	@chmod 755 $(DESTDIR)$(PREFIX)/bin/vpkadd
+	@cp -f vpkadd.1 $(DESTDIR)$(PREFIX)/man/man1
 
-	cp -f libvpkadd.sh $(DESTDIR)$(PREFIX)/lib
+	@cp -f vpkrm $(DESTDIR)$(PREFIX)/bin
+	@chmod 755 $(DESTDIR)$(PREFIX)/bin/vpkrm
+	@cp -f vpkrm.1 $(DESTDIR)$(PREFIX)/man/man1
 
-	cp -f vpkadd.1 $(DESTDIR)$(PREFIX)/man/man1
+	@cp -f vpkinfo $(DESTDIR)$(PREFIX)/bin
+	@chmod 755 $(DESTDIR)$(PREFIX)/bin/vpkinfo
+	@cp -f vpkinfo.1 $(DESTDIR)$(PREFIX)/man/man1
 
-uninstall:
-	rm -f $(DESTDIR)$(PREFIX)/bin/vpkadd
-	rm -f $(DESTDIR)$(PREFIX)/bin/vpknfo
-	rm -f $(DESTDIR)$(PREFIX)/bin/vpkpin
-	rm -f $(DESTDIR)$(PREFIX)/bin/vpkrm
+uninstall: Makefile
+	@rm -f $(DESTDIR)$(PREFIX)/bin/vpkadd
+	@rm -f $(DESTDIR)$(PREFIX)/bin/vpkinfo
+	@rm -f $(DESTDIR)$(PREFIX)/bin/vpkrm
 
-.PHONY: all vpk clean dist
+.PHONY: all clean dist uninstall
