@@ -1,22 +1,22 @@
-#!/bin/sh
+#!/bin/sh -u
 #
 # Copyright (c) 2019, Cristian Ariza
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
-# 
+#
 # 1. Redistributions of source code must retain the above copyright notice, this
 #    list of conditions and the following disclaimer.
-# 
+#
 # 2. Redistributions in binary form must reproduce the above copyright notice,
 #    this list of conditions and the following disclaimer in the documentation
 #    and/or other materials provided with the distribution.
-# 
+#
 # 3. Neither the name of the copyright holder nor the names of its
 #    contributors may be used to endorse or promote products derived from
 #    this software without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -30,7 +30,9 @@
 #
 # Prints information about the vpk packages and repository
 
-WORKDIR="/var/cache/vpk"
+###########
+# Functions
+###########
 
 try() { "$@" || exit "$?"; }
 
@@ -54,33 +56,27 @@ vpkshow() { git --git-dir "$WORKDIR"/.git show "$@" || return "$?"; }
 vpksizes() { dpkg-query -Wf '${Installed-Size}\t${Package}\n' || return "$?" | sort -n; }
 vpkversions() { apt-cache madison "$@" || return "$?" | sed 's/ | /=/g'; }
 
+######
+# Main
+######
+
+WORKDIR="/var/cache/vpk"
+
 while test "$#" -gt 0; do
 	arg="$1" && shift
 	case "$arg" in
 		"-h") usage 0 ;;
 		"-d") set -x ;;
-		"-c")
-			action="show"
-			break
-			;;
-		"-l")
-			action="log"
-			break
-			;;
-		"-s")
-			action="sizes"
-			break
-			;;
-		"-m")
-			action="versions"
-			break
-			;;
-		"-"*) usage 1 ;;
-		*)
-			action="list"
-			break
-			;;
+		"-c") action="show" ;;
+		"-l") action="log" ;;
+		"-s") action="sizes" ;;
+		"-m") action="versions" ;;
+		*) usage 1 ;;
 	esac
+
+	if test -n "${action-}"; then
+		break
+	fi
 done
 
 if test -z "$action"; then
