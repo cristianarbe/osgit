@@ -62,7 +62,7 @@ vpkupgrade() { apt-get upgrade -y; }
 vpkcommit() {
 	dpkg-query -Wf '${Package}=${Version}\n' | sort > "$WORKDIR"/packages || return "$?"
 	quiet git --git-dir="$WORKDIR"/.git --work-tree="$WORKDIR" add packages -f || return "$?"
-	quiet git --git-dir="$WORKDIR"/.git --work-tree="$WORKDIR" commit -m "$2" || return "$?"
+	quiet git --git-dir="$WORKDIR"/.git --work-tree="$WORKDIR" commit -m "$1" || return "$?"
 }
 
 vpkcheckout() {
@@ -70,9 +70,9 @@ vpkcheckout() {
 	quiet git --git-dir="$WORKDIR"/.git --work-tree="$WORKDIR" show \
 		"$2":packages > "$TMP" || return "$?"
 
-	eval "set -- $(comm -13 $WORKDIR/packages "$TMP")"
+	eval "set -- $(comm -13 "$WORKDIR"/packages "$TMP")"
 	apt-get install "$@" || return "$?"
-	eval "set -- $(comm -23 $WORKDIR/packages "$TMP")"
+	eval "set -- $(comm -23 "$WORKDIR"packages "$TMP")"
 	apt-get --autoremove purge "$@" || return "$?"
 
 	rm "$TMP" || return "$?"
@@ -90,6 +90,7 @@ Usage: %s [-duv] [--help] [-c COMMITID] [PACKAGE]...\n' "$(basename "$0")" >&2
 # Main
 ######
 
+verbose=false
 WORKDIR="/var/cache/vpk"
 
 while test "$#" -gt 0; do
@@ -109,6 +110,7 @@ while test "$#" -gt 0; do
 		"-"*) usage 1 ;;
 		*)
 			action="install"
+			set -- "$arg" "$@"
 			break
 			;;
 	esac

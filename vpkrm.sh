@@ -56,7 +56,7 @@ vpkcommit() {
 	quiet git --git-dir="$WORKDIR"/.git --work-tree="$WORKDIR" \
 		add packages -f || return "$?"
 	quiet git --git-dir="$WORKDIR"/.git --work-tree="$WORKDIR" \
-		commit -m "$2" || return "$?"
+		commit -m "$1" || return "$?"
 }
 
 vpkrevert() {
@@ -65,9 +65,9 @@ vpkrevert() {
 		"$2":packages > "$TMP"
 
 	# Apparently this is the corrent way to do it but not sure why
-	eval "set -- $(comm -13 $WORKDIR/packages "$TMP")"
+	eval "set -- $(comm -13 "$WORKDIR"/packages "$TMP")"
 	apt-get install "$@"
-	eval "set -- $(comm -23 $WORKDIR/packages "$TMP")"
+	eval "set -- $(comm -23 "$WORKDIR"/packages "$TMP")"
 	apt-get --autoremove purge "$@"
 
 	rm "$TMP"
@@ -86,6 +86,7 @@ Usage: %s [-dv] [--help] [-c COMMITID] [PACKAGE]...\n' "$(basename "$0")" >&2
 ######
 
 WORKDIR="/var/cache/vpk"
+verbose=false
 
 while test "$#" -gt 0; do
 	arg="$1" && shift
@@ -115,6 +116,7 @@ if test ! -d "$WORKDIR"/.git; then
 fi
 
 try "vpk$action" "$@"
-try vpkcommit "$action $*"
+msg="$action $*"
+try vpkcommit "$msg"
 
 exit 0
