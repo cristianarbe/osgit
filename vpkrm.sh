@@ -75,7 +75,7 @@ vpkrevert() {
 }
 
 usage() {
-	printf 'pkutils v0.7.0 (C) Cristian Ariza
+	printf 'pkutils v1.0.0 (C) Cristian Ariza
 
 Usage: %s [-dv] [--help] [-c COMMITID] [PACKAGE]...\n' "$(basename "$0")" >&2
 	exit "$1"

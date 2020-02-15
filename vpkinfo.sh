@@ -37,7 +37,7 @@
 try() { "$@" || exit "$?"; }
 
 usage() {
-	printf "pkutils v0.7.0 (C) Cristian Ariza
+	printf "pkutils v1.0.0 (C) Cristian Ariza
 
 Usage: %s [-dhls] [-c COMMITID] [-m PACKAGE]
 
