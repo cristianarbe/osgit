@@ -37,17 +37,19 @@ dist: clean
 
 install: all Makefile
 	@mkdir -p $(DESTDIR)$(PREFIX)/bin
-	@cp -f vpkadd vpkrm vpkinfo $(DESTDIR)$(PREFIX)/bin
-	@chmod 755 $(DESTDIR)$(PREFIX)/bin/vpkadd
-	@chmod 755 $(DESTDIR)$(PREFIX)/bin/vpkrm
+	@mkdir -p $(DESTDIR)$(PREFIX)/sbin
+	@cp -f vpkadd vpkrm $(DESTDIR)$(PREFIX)/sbin
+	@cp -f vpkinfo $(DESTDIR)$(PREFIX)/bin
+	@chmod 755 $(DESTDIR)$(PREFIX)/sbin/vpkadd
+	@chmod 755 $(DESTDIR)$(PREFIX)/sbin/vpkrm
 	@chmod 755 $(DESTDIR)$(PREFIX)/bin/vpkinfo
 
 	@mkdir -p $(DESTDIR)$(PREFIX)/man/man1
 	@cp -f vpkadd.1 vpkrm.1 vpkinfo.1 $(DESTDIR)$(PREFIX)/man/man1
 
 uninstall: Makefile
-	@rm -f $(DESTDIR)$(PREFIX)/bin/vpkadd
-	@rm -f $(DESTDIR)$(PREFIX)/bin/vpkadd
+	@rm -f $(DESTDIR)$(PREFIX)/sbin/vpkadd
+	@rm -f $(DESTDIR)$(PREFIX)/sbin/vpkrm
 	@rm -f $(DESTDIR)$(PREFIX)/bin/vpkinfo
 	@rm -f $(DESTDIR)$(PREFIX)/man/man1/vpkadd.1
 	@rm -f $(DESTDIR)$(PREFIX)/man/man1/vpkadd.1
