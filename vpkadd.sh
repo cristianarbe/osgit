@@ -38,8 +38,8 @@ try() { "$@" || exit "$?"; }
 
 quiet() {
 	case "$verbose" in
-		true) "$@" ;;
-		*) "$@" > /dev/null ;;
+	true) "$@" ;;
+	*) "$@" > /dev/null ;;
 	esac
 }
 
@@ -94,37 +94,37 @@ verbose=false
 WORKDIR="/var/cache/vpk"
 action=
 
-while test "$#" -gt 0; do
+while [ "$#" -gt 0 ]; do
 	arg="$1" && shift
 	case "$arg" in
-		"-v") verbose=true ;;
-		"-d") set -x ;;
-		"--help") usage 0 ;;
-		"-c")
-			action="checkout"
-			break
-			;;
-		"-u")
-			action="upgrade"
-			break
-			;;
-		"-"*) usage 1 ;;
-		*)
-			action="install"
-			set -- "$arg" "$@"
-			break
-			;;
+	"-v") verbose=true ;;
+	"-d") set -x ;;
+	"--help") usage 0 ;;
+	"-c")
+		action="checkout"
+		break
+		;;
+	"-u")
+		action="upgrade"
+		break
+		;;
+	"-"*) usage 1 ;;
+	*)
+		action="install"
+		set -- "$arg" "$@"
+		break
+		;;
 	esac
 done
 
-if test ! -d "$WORKDIR"/.git; then
+if [ ! -d "$WORKDIR"/.git ]; then
 	try vpkinit
 fi
 
 try vpkupdate
 
-if test -z "$action"; then
-    exit 0
+if [ -z "$action" ]; then
+	exit 0
 fi
 
 try "vpk$action" "$@"

@@ -61,27 +61,26 @@ vpkversions() { apt-cache madison "$@" || return "$?" | sed 's/ | /=/g'; }
 ######
 
 WORKDIR="/var/cache/vpk"
+action=
 
-while test "$#" -gt 0; do
+while [ "$#" -gt 0 ]; do
 	arg="$1" && shift
 	case "$arg" in
-		"-h") usage 0 ;;
-		"-d") set -x ;;
-		"-c") action="show" ;;
-		"-l") action="log" ;;
-		"-s") action="sizes" ;;
-		"-m") action="versions" ;;
-		*) usage 1 ;;
+	"-h") usage 0 ;;
+	"-d") set -x ;;
+	"-c") action="show" ;;
+	"-l") action="log" ;;
+	"-s") action="sizes" ;;
+	"-m") action="versions" ;;
+	*) usage 1 ;;
 	esac
 
-	if test -n "${action-}"; then
+	if [ -n "$action" ]; then
 		break
 	fi
 done
 
-if test -z "$action"; then
-	action="list"
-fi
+${action:=list}
 
 try "vpk$action" "$@"
 

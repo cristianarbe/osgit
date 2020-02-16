@@ -38,8 +38,8 @@ try() { "$@" || exit "$?"; }
 
 quiet() {
 	case "$verbose" in
-		true) "$@" ;;
-		*) "$@" > /dev/null ;;
+	true) "$@" ;;
+	*) "$@" > /dev/null ;;
 	esac
 }
 
@@ -88,30 +88,30 @@ Usage: %s [-dv] [--help] [-c COMMITID] [PACKAGE]...\n' "$(basename "$0")" >&2
 WORKDIR="/var/cache/vpk"
 verbose=false
 
-while test "$#" -gt 0; do
+while [ "$#" -gt 0 ]; do
 	arg="$1" && shift
 	case "$arg" in
-		"-v") verbose=true ;;
-		"-d") set -x ;;
-		"--help") usage 0 ;;
-		"-c")
-			action="revert"
-			break
-			;;
-		"-"*) usage 1 ;;
-		*)
-			action="uninstall"
-			set -- "$arg" "$@"
-			break
-			;;
+	"-v") verbose=true ;;
+	"-d") set -x ;;
+	"--help") usage 0 ;;
+	"-c")
+		action="revert"
+		break
+		;;
+	"-"*) usage 1 ;;
+	*)
+		action="uninstall"
+		set -- "$arg" "$@"
+		break
+		;;
 	esac
 done
 
-if test -z "$action"; then
+if [ -z "$action" ]; then
 	usage 1
 fi
 
-if test ! -d "$WORKDIR"/.git; then
+if [ ! -d "$WORKDIR"/.git ]; then
 	try vpkinit "$WORKDIR"
 fi
 
