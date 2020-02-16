@@ -37,7 +37,7 @@
 try() { "$@" || exit "$?"; }
 
 quiet() {
-	case "$verbose" in
+	case "$VERBOSE" in
 	true) "$@" ;;
 	*) "$@" > /dev/null ;;
 	esac
@@ -74,48 +74,37 @@ vpkcheckout() {
 	apt-get install "$@" || return "$?"
 	eval "set -- $(comm -23 "$WORKDIR"packages "$TMP")"
 	apt-get --autoremove purge "$@" || return "$?"
-
-	rm "$TMP" || return "$?"
-	unset "$TMP"
 }
 
 usage() {
 	printf 'pkutils v1.0.0 (C) Cristian Ariza
 
-Usage: %s [-duv] [--help] [-c COMMITID] [PACKAGE]...\n' "$(basename "$0")" >&2
-	exit "$1"
+Usage: %s [-duv] [-c COMMITID] [PACKAGE]...\n' "$(basename "$0")" >&2
+	exit "${1-1}"
 }
 
 ######
 # Main
 ######
 
-verbose=false
-WORKDIR="/var/cache/vpk"
-action=
+trap 'rm -f $TMP' EXIT
 
-while [ "$#" -gt 0 ]; do
-	arg="$1" && shift
-	case "$arg" in
-	"-v") verbose=true ;;
-	"-d") set -x ;;
-	"--help") usage 0 ;;
-	"-c")
-		action="checkout"
-		break
-		;;
-	"-u")
-		action="upgrade"
-		break
-		;;
-	"-"*) usage 1 ;;
-	*)
-		action="install"
-		set -- "$arg" "$@"
-		break
-		;;
+VERBOSE=false
+WORKDIR="/var/cache/vpk"
+
+while getopts "c:duv" c; do
+	case "$c" in
+	c) ACTION="checkout" ;;
+	d) set -x ;;
+	u) ACTION="upgrade" ;;
+	v) VERBOSE=true ;;
+	*) usage 1 ;;
 	esac
 done
+
+shift $(( OPTIND - 1))
+
+: ${ACTION=install}
 
 if [ ! -d "$WORKDIR"/.git ]; then
 	try vpkinit
@@ -123,11 +112,11 @@ fi
 
 try vpkupdate
 
-if [ -z "$action" ]; then
+if [ -z "$ACTION" ]; then
 	exit 0
 fi
 
-try "vpk$action" "$@"
-try vpkcommit "$action $*"
+try vpk"$ACTION" "$@"
+try vpkcommit "$ACTION $*"
 
 exit 0
