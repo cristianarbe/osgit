@@ -82,7 +82,7 @@ Usage: %s [-dv] [--help] [-c COMMITID] [PACKAGE]...\n' "$(basename "$0")" >&2
 # Main
 ######
 
-trap 'rm -f $TMP' EXIT
+trap 'rm -f ${TMP-}' EXIT
 
 ACTION=uninstall
 VERBOSE=false
