@@ -39,14 +39,13 @@ try() { "$@" || exit "$?"; }
 usage() {
 	printf 'vpkutils v1.0.0 (C) Cristian Ariza
 
-Usage: %s [-dhls] [-c COMMITID] [-m PACKAGE]
+Usage: %s [-dls] [-c COMMITID] [-m PACKAGE]
 
-	-h  shows this menu
+	-c  show COMMITID
 	-d  debug
-	-c  show a COMMITID
 	-l  show log
-	-s  print package sizes
-	-m  show packages versions\n' "$(basename "$0")" >&2
+	-m  show PACKAGE available versions
+	-s  print package sizes\n' "$(basename "$0")" >&2
 	exit "${1-1}"
 }
 
@@ -71,11 +70,11 @@ while getopts "hdc:lsm:" c; do
 		;;
 	d) set -x ;;
 	l) ACTION="log" ;;
-	s) ACTION="sizes" ;;
 	m)
 		ACTION="versions"
 		ARG="$OPTARG"
 		;;
+	s) ACTION="sizes" ;;
 	*) usage 1 ;;
 	esac
 done
