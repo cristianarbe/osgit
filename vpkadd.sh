@@ -89,12 +89,16 @@ Usage: %s [-duv] [-c COMMITID] [PACKAGE]...\n' "$(basename "$0")" >&2
 
 trap 'rm -f $TMP' EXIT
 
+ACTION=install
 VERBOSE=false
 WORKDIR="/var/cache/vpk"
 
 while getopts "c:duv" c; do
 	case "$c" in
-	c) ACTION="checkout" ;;
+	c)
+		ACTION="checkout"
+		COMMIT="$OPTARG"
+		;;
 	d) set -x ;;
 	u) ACTION="upgrade" ;;
 	v) VERBOSE=true ;;
@@ -104,16 +108,16 @@ done
 
 shift $(( OPTIND - 1))
 
-: ${ACTION=install}
-
 if [ ! -d "$WORKDIR"/.git ]; then
 	try vpkinit
 fi
 
 try vpkupdate
 
-if [ -z "$ACTION" ]; then
+if [ "$ACTION" = "install" ] && [ "$#" -eq 0 ]; then
 	exit 0
+elif [ "$ACTION" = "checkout" ]; then
+	eval "set -- $COMMIT"
 fi
 
 try vpk"$ACTION" "$@"

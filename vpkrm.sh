@@ -37,7 +37,7 @@
 try() { "$@" || exit "$?"; }
 
 quiet() {
-	case "$verbose" in
+	case "$VERBOSE" in
 	true) "$@" ;;
 	*) "$@" > /dev/null ;;
 	esac
@@ -69,9 +69,6 @@ vpkrevert() {
 	apt-get install "$@"
 	eval "set -- $(comm -23 "$WORKDIR"/packages "$TMP")"
 	apt-get --autoremove purge "$@"
-
-	rm "$TMP"
-	unset "$TMP"
 }
 
 usage() {
@@ -85,38 +82,37 @@ Usage: %s [-dv] [--help] [-c COMMITID] [PACKAGE]...\n' "$(basename "$0")" >&2
 # Main
 ######
 
-WORKDIR="/var/cache/vpk"
-verbose=false
+trap 'rm -f $TMP' EXIT
 
-while [ "$#" -gt 0 ]; do
-	arg="$1" && shift
-	case "$arg" in
-	"-v") verbose=true ;;
-	"-d") set -x ;;
-	"--help") usage 0 ;;
-	"-c")
-		action="revert"
-		break
+ACTION=uninstall
+VERBOSE=false
+WORKDIR="/var/cache/vpk"
+
+while getopts "cdv" c; do
+	case "$c" in
+	c)
+		ACTION="revert"
+		COMMIT="$OPTARG"
 		;;
-	"-"*) usage 1 ;;
-	*)
-		action="uninstall"
-		set -- "$arg" "$@"
-		break
-		;;
+	d) set -x ;;
+	v) VERBOSE=true ;;
+	*) usage 1 ;;
 	esac
 done
 
-if [ -z "$action" ]; then
-	usage 1
-fi
+shift $((OPTIND-1))
 
 if [ ! -d "$WORKDIR"/.git ]; then
 	try vpkinit "$WORKDIR"
 fi
 
-try "vpk$action" "$@"
-msg="$action $*"
-try vpkcommit "$msg"
+if [ "$ACTION" = "uninstall" ] && [ "$#" -eq 0 ]; then
+	exit 0
+elif [ "$ACTION" = "revert" ]; then
+	eval "set -- $COMMIT"
+fi
+
+try vpk"$ACTION" "$@"
+try vpkcommit "$ACTION $*"
 
 exit 0
