@@ -37,7 +37,7 @@
 try() { "$@" || exit "$?"; }
 
 usage() {
-	printf "pkutils v1.0.0 (C) Cristian Ariza
+	printf 'vpkutils v1.0.0 (C) Cristian Ariza
 
 Usage: %s [-dhls] [-c COMMITID] [-m PACKAGE]
 
@@ -46,8 +46,8 @@ Usage: %s [-dhls] [-c COMMITID] [-m PACKAGE]
 	-c  show a COMMITID
 	-l  show log
 	-s  print package sizes
-	-m  show packages versions" "$(basename "$0")" >&2
-	exit "$1"
+	-m  show packages versions\n' "$(basename "$0")" >&2
+	exit "${1-1}"
 }
 
 vpklist() { cat "$WORKDIR"/packages; }
@@ -60,28 +60,30 @@ vpkversions() { apt-cache madison "$@" || return "$?" | sed 's/ | /=/g'; }
 # Main
 ######
 
+ACTION="list"
 WORKDIR="/var/cache/vpk"
-action=
 
-while [ "$#" -gt 0 ]; do
-	arg="$1" && shift
-	case "$arg" in
-	"-h") usage 0 ;;
-	"-d") set -x ;;
-	"-c") action="show" ;;
-	"-l") action="log" ;;
-	"-s") action="sizes" ;;
-	"-m") action="versions" ;;
+while getopts "hdc:lsm:" c; do
+	case "$c" in
+	c)
+		ACTION="show"
+		ARG="$OPTARG"
+		;;
+	d) set -x ;;
+	l) ACTION="log" ;;
+	s) ACTION="sizes" ;;
+	m)
+		ACTION="versions"
+		ARG="$OPTARG"
+		;;
 	*) usage 1 ;;
 	esac
-
-	if [ -n "$action" ]; then
-		break
-	fi
 done
 
-${action:=list}
+case "$ACTION" in
+show | versions) eval "set -- $ARG" ;;
+esac
 
-try "vpk$action" "$@"
+try "vpk$ACTION" "$@"
 
 exit 0
