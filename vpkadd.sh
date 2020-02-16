@@ -92,6 +92,7 @@ Usage: %s [-duv] [--help] [-c COMMITID] [PACKAGE]...\n' "$(basename "$0")" >&2
 
 verbose=false
 WORKDIR="/var/cache/vpk"
+action=
 
 while test "$#" -gt 0; do
 	arg="$1" && shift
@@ -122,9 +123,11 @@ fi
 
 try vpkupdate
 
-if test -n "$action"; then
-	try "vpk$action" "$@"
-	try vpkcommit "$action $*"
+if test -z "$action"; then
+    exit 0
 fi
+
+try "vpk$action" "$@"
+try vpkcommit "$action $*"
 
 exit 0
