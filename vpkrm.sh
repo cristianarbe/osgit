@@ -30,6 +30,8 @@
 #
 # Installs packages and updates the git repo
 
+WORKDIR="/var/cache/vpk"
+
 ###########
 # Functions
 ###########
@@ -39,30 +41,31 @@ try() { "$@" || exit "$?"; }
 quiet() {
 	case "$VERBOSE" in
 	true) "$@" ;;
-	*) "$@" > /dev/null ;;
+	*) "$@" >/dev/null ;;
 	esac
+}
+
+GIT() {
+	git --git-dir="$WORKDIR"/.git --work-tree="$WORKDIR" "$@"
 }
 
 vpkinit() {
 	mkdir -p "$WORKDIR" || return "$?"
-	quiet git --git-dir="$WORKDIR"/.git --work-tree="$WORKDIR" init || return "$?"
+	quiet GIT init || return "$?"
 }
 
 vpkuninstall() { apt-get --autoremove purge "$@"; }
 
 vpkcommit() {
-	dpkg-query -Wf '${Package}=${Version}\n' | sort > "$WORKDIR"/packages ||
+	dpkg-query -Wf '${Package}=${Version}\n' | sort >"$WORKDIR"/packages ||
 		return "$?"
-	quiet git --git-dir="$WORKDIR"/.git --work-tree="$WORKDIR" \
-		add packages -f || return "$?"
-	quiet git --git-dir="$WORKDIR"/.git --work-tree="$WORKDIR" \
-		commit -m "$1" || return "$?"
+	quiet GIT add packages -f || return "$?"
+	quiet GIT commit -m "$1" || return "$?"
 }
 
 vpkrevert() {
 	TMP="$(mktemp)"
-	quiet git --git-dir="$WORKDIR"/.git --work-tree="$WORKDIR" show \
-		"$2":packages > "$TMP"
+	quiet GIT show "$2":packages >"$TMP"
 
 	# Apparently this is the corrent way to do it but not sure why
 	eval "set -- $(comm -13 "$WORKDIR"/packages "$TMP")"
@@ -75,7 +78,7 @@ usage() {
 	printf 'pkutils v1.0.0 (C) Cristian Ariza
 
 Usage: %s [-dv] [--help] [-c COMMITID] [PACKAGE]...\n' "$(basename "$0")" >&2
-	exit "$1"
+	exit "${1-1}"
 }
 
 ######
@@ -86,7 +89,6 @@ trap 'rm -f ${TMP-}' EXIT
 
 ACTION=uninstall
 VERBOSE=false
-WORKDIR="/var/cache/vpk"
 
 while getopts "cdv" c; do
 	case "$c" in
@@ -100,7 +102,7 @@ while getopts "cdv" c; do
 	esac
 done
 
-shift $((OPTIND-1))
+shift $((OPTIND - 1))
 
 if [ ! -d "$WORKDIR"/.git ]; then
 	try vpkinit "$WORKDIR"

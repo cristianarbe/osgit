@@ -49,9 +49,10 @@ Usage: %s [-dls] [-c COMMITID] [-m PACKAGE]
 	exit "${1-1}"
 }
 
+GIT() { git --git-dir "$WORKDIR"/.git "$@"; }
 vpklist() { cat "$WORKDIR"/packages; }
-vpklog() { git --git-dir "$WORKDIR"/.git log "$@" || return "$?"; }
-vpkshow() { git --git-dir "$WORKDIR"/.git show "$@" || return "$?"; }
+vpklog() { GIT log "$@"; }
+vpkshow() { GIT show "$@"; }
 vpksizes() { dpkg-query -Wf '${Installed-Size}\t${Package}\n' || return "$?" | sort -n; }
 vpkversions() { apt-cache madison "$@" || return "$?" | sed 's/ | /=/g'; }
 
