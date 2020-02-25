@@ -31,6 +31,12 @@
 # Prints information about the vpk packages and repository
 
 ###########
+# Constants
+###########
+
+WORKDIR="/var/cache/vpk"
+
+###########
 # Functions
 ###########
 
@@ -39,51 +45,47 @@ try() { "$@" || exit "$?"; }
 usage() {
 	printf 'vpkutils v1.0.0 (C) Cristian Ariza
 
-Usage: %s [-dls] [-c COMMITID] [-m PACKAGE]
+usage: %s [-dls] [-c commitid] [-m package]
 
 	-c  show COMMITID
-	-d  debug
 	-l  show log
-	-m  show PACKAGE available versions
-	-s  print package sizes\n' "$(basename "$0")" >&2
+	-s  print package sizes
+	-v  show PACKAGE available versions\n' "$(basename "$0")" >&2
 	exit "${1-1}"
 }
 
 GIT() { git --git-dir "$WORKDIR"/.git "$@"; }
+
 vpklist() { cat "$WORKDIR"/packages; }
-vpklog() { GIT log "$@"; }
+vpklog() { GIT log; }
 vpkshow() { GIT show "$@"; }
-vpksizes() { dpkg-query -Wf '${Installed-Size}\t${Package}\n' || return "$?" | sort -n; }
 vpkversions() { apt-cache madison "$@" || return "$?" | sed 's/ | /=/g'; }
 
 ######
 # Main
 ######
 
-ACTION="list"
-WORKDIR="/var/cache/vpk"
-
-while getopts "hdc:lsm:" c; do
+CMD="list"
+while getopts "c:dlv:" c; do
 	case "$c" in
 	c)
-		ACTION="show"
+		CMD="show"
 		ARG="$OPTARG"
 		;;
 	d) set -x ;;
-	l) ACTION="log" ;;
-	m)
-		ACTION="versions"
+	l) CMD="log" ;;
+	v)
+		CMD="versions"
 		ARG="$OPTARG"
 		;;
-	s) ACTION="sizes" ;;
 	*) usage 1 ;;
 	esac
 done
 
-case "$ACTION" in
+case "$CMD" in
 show | versions) eval "set -- $ARG" ;;
 esac
 
-try "vpk$ACTION" "$@"
+try "vpk$CMD" "$@"
 
 exit 0
