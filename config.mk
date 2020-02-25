@@ -2,5 +2,5 @@ SC = cat
 SFLAGS =
 MC = pandoc
 MFLAGS = -s -t man
-PREFIX = /usr/local
-VERSION = v1.0.0
+PREFIX = ${HOME}/bin
+VERSION = v2.0.0

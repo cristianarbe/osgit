@@ -87,7 +87,7 @@ vpkcommit() {
 }
 
 usage() {
-	printf 'pkutils v1.0.0 (C) Cristian Ariza
+	printf 'pkutils v2.0.0 (C) Cristian Ariza
 
 Usage: %s [-duv] [-c COMMITID] [PACKAGE]...\n' "$(basename "$0")" >&2
 	exit "${1-1}"

@@ -43,7 +43,7 @@ WORKDIR="/var/cache/vpk"
 try() { "$@" || exit "$?"; }
 
 usage() {
-	printf 'vpkutils v1.0.0 (C) Cristian Ariza
+	printf 'vpkutils v2.0.0 (C) Cristian Ariza
 
 usage: %s [-dls] [-c commitid] [-m package]
 
