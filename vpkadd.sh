@@ -55,7 +55,7 @@ quiet() {
 
 pkginstall() { apt-get install "$@"; }
 pkguninstall() { apt-get --autoremove purge "$@"; }
-pkgupdate() { apt-get update "$@"; }
+pkgupdate() { apt-get update; }
 pkgupgrade() { apt-get upgrade -y; }
 
 vpkinit() {
