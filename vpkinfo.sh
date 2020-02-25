@@ -45,12 +45,10 @@ try() { "$@" || exit "$?"; }
 usage() {
 	printf 'vpkutils v2.0.0 (C) Cristian Ariza
 
-usage: %s [-dls] [-c commitid] [-m package]
+usage: %s [-ls] [-c commitid]
 
-	-c  show COMMITID
-	-l  show log
-	-s  print package sizes
-	-v  show PACKAGE available versions\n' "$(basename "$0")" >&2
+	-c  show commitid
+	-l  show log\n' "$(basename "$0")" >&2
 	exit "${1-1}"
 }
 
@@ -59,14 +57,14 @@ GIT() { git --git-dir "$WORKDIR"/.git "$@"; }
 vpklist() { cat "$WORKDIR"/packages; }
 vpklog() { GIT log; }
 vpkshow() { GIT show "$@"; }
-vpkversions() { apt-cache madison "$@" || return "$?" | sed 's/ | /=/g'; }
 
 ######
 # Main
 ######
 
+ARG=
 CMD="list"
-while getopts "c:dlv:" c; do
+while getopts "c:dl" c; do
 	case "$c" in
 	c)
 		CMD="show"
@@ -74,18 +72,14 @@ while getopts "c:dlv:" c; do
 		;;
 	d) set -x ;;
 	l) CMD="log" ;;
-	v)
-		CMD="versions"
-		ARG="$OPTARG"
-		;;
 	*) usage 1 ;;
 	esac
 done
+shift "$((OPTIND - 1))"
 
-case "$CMD" in
-show | versions) eval "set -- $ARG" ;;
+case "$#" in
+0) try "vpk$CMD" "$ARG" ;;
+*) usage 1 ;;
 esac
 
-try "vpk$CMD" "$@"
-
-exit 0
+:
