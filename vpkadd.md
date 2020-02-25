@@ -1,12 +1,12 @@
-% VPK_ADD(1)
+% vpkadd(1)
 
 # NAME
 
-**vpk_add** - install, update and version control software packages
+**vpkadd** - install, update and version control software packages
 
 # SYNOPSIS
 
-**vpk_add** [**-u**] [**-c** *commit-id*] [*pkg-name* ...]
+**vpkadd** [**-u**] [**-c** *commit-id*] [*pkg-name* ...]
 
 # DESCRIPTION
 
@@ -18,7 +18,7 @@ The **vpkadd** command is used to install or update packages.
 * Update installed packages, using option **-u**.
 * Rolling back to a previous state of installed packages, using option **-c**. The *commit-id* specified on the command line is the commit ID to roll back to.
 
-# FILES
+# PATHS
 
 */var/cache/vpk:* git repository of installed packages
 
