@@ -30,6 +30,10 @@
 #
 # Installs packages and updates the git repo
 
+###########
+# Constants
+###########
+
 WORKDIR="/var/cache/vpk"
 
 ###########
@@ -37,7 +41,7 @@ WORKDIR="/var/cache/vpk"
 ###########
 
 GIT() {
-	git --git-dir="$WORKDIR"/.git --work-tree="$WORKDIR" "$@" || return "$?"
+	git --git-dir="$WORKDIR"/.git --work-tree="$WORKDIR" "$@"
 }
 
 try() { "$@" || exit "$?"; }
@@ -49,31 +53,31 @@ quiet() {
 	esac
 }
 
+pkginstall() { apt-get install "$@"; }
+pkguninstall() { apt-get --autoremove purge "$@"; }
+pkgupdate() { apt-get update "$@"; }
+pkgupgrade() { apt-get upgrade -y; }
+
 vpkinit() {
 	mkdir -p "$WORKDIR" || return "$?"
 	quiet GIT init || return "$?"
 }
 
 vpkupdate() {
-	dpkg-query -Wf '${Package}=${Version}\n' | sort >"$WORKDIR"/packages || return "$?"
+	dpkg-query -Wf '${Package}=${Version}\n' | sort >"$WORKDIR"/packages ||
+		return "$?"
 	quiet GIT add packages -f || return "$?"
 	quiet GIT commit -m "Sync"
-	quiet apt-get update || return "$?"
+	pkgupdate || return "$?"
 }
-
-vpkinstall() { apt-get install "$@"; }
-
-vpkupgrade() { apt-get upgrade -y; }
-
-vpkuninstall() { apt-get --autoremove purge "$@"; }
 
 vpkcheckout() {
 	TMP="$(mktemp)"
 	quiet GIT show "$2":packages || return "$?" >"$TMP"
 	eval "set -- $(comm -13 "$WORKDIR"/packages "$TMP")"
-	vpkinstall "$@" || return "$?"
+	pkginstall "$@" || return "$?"
 	eval "set -- $(comm -23 "$WORKDIR"packages "$TMP")"
-	vpkuninstall "$@" || return "$?"
+	pkguninstall "$@" || return "$?"
 }
 
 vpkcommit() {
