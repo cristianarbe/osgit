@@ -49,13 +49,13 @@ GIT() {
 	git --git-dir="$WORKDIR"/.git --work-tree="$WORKDIR" "$@"
 }
 
+pkginstall() { apt-get install "$@"; }
+pkguninstall() { apt-get --autoremove purge "$@"; }
+
 vpkinit() {
 	mkdir -p "$WORKDIR" || return "$?"
 	quiet GIT init || return "$?"
 }
-
-pkginstall() { apt-get install "$@"; }
-pkguninstall() { apt-get --autoremove purge "$@"; }
 
 vpkcommit() {
 	dpkg-query -Wf '${Package}=${Version}\n' | sort >"$WORKDIR"/packages ||
@@ -76,7 +76,10 @@ vpkrevert() {
 usage() {
 	printf 'pkutils v2.0.0 (C) Cristian Ariza
 
-Usage: %s [-dv] [--help] [-c COMMITID] [PACKAGE]...\n' "$(basename "$0")" >&2
+usage: %s [-v] [--help] [-c commitid] [package]...
+
+	-v  verbose mode
+	-c  revert a commit id\n' "$(basename "$0")" >&2
 	exit "${1-1}"
 }
 
@@ -86,16 +89,14 @@ Usage: %s [-dv] [--help] [-c COMMITID] [PACKAGE]...\n' "$(basename "$0")" >&2
 
 trap 'rm -f ${TMP-}' EXIT
 
-ACTION=uninstall
+ACTION=pkguninstall
 VERBOSE=false
-
 while getopts "cdv" c; do
 	case "$c" in
 	c)
-		ACTION="revert"
+		ACTION="vpkrevert"
 		COMMIT="$OPTARG"
 		;;
-	d) set -x ;;
 	v) VERBOSE=true ;;
 	*) usage 1 ;;
 	esac
@@ -107,13 +108,13 @@ if [ ! -d "$WORKDIR"/.git ]; then
 	try vpkinit "$WORKDIR"
 fi
 
-if [ "$ACTION" = "uninstall" ] && [ "$#" -eq 0 ]; then
-	exit 0
-elif [ "$ACTION" = "revert" ]; then
+if [ "$ACTION" = "pkguninstall" ] && [ "$#" -eq 0 ]; then
+	usage 1
+elif [ "$ACTION" = "vpkrevert" ]; then
 	eval "set -- $COMMIT"
 fi
 
-try vpk"$ACTION" "$@"
+try "$ACTION" "$@"
 try vpkcommit "$ACTION $*"
 
-exit 0
+:
