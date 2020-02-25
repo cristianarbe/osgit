@@ -54,7 +54,8 @@ vpkinit() {
 	quiet GIT init || return "$?"
 }
 
-vpkuninstall() { apt-get --autoremove purge "$@"; }
+pkginstall() { apt-get install "$@"; }
+pkguninstall() { apt-get --autoremove purge "$@"; }
 
 vpkcommit() {
 	dpkg-query -Wf '${Package}=${Version}\n' | sort >"$WORKDIR"/packages ||
@@ -65,13 +66,11 @@ vpkcommit() {
 
 vpkrevert() {
 	TMP="$(mktemp)"
-	quiet GIT show "$2":packages >"$TMP"
+	quiet GIT revert --no-commit "$2"
+	GIT commit -m "Revert $2"
 
-	# Apparently this is the corrent way to do it but not sure why
-	eval "set -- $(comm -13 "$WORKDIR"/packages "$TMP")"
-	apt-get install "$@"
-	eval "set -- $(comm -23 "$WORKDIR"/packages "$TMP")"
-	apt-get --autoremove purge "$@"
+	eval "pkginstall $(comm -13 "$WORKDIR"/packages "$TMP")"
+	eval "pkguninstall $(comm -23 "$WORKDIR"/packages "$TMP")"
 }
 
 usage() {
